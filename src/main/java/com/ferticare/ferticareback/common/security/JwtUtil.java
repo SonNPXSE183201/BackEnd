@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -14,18 +15,22 @@ public class JwtUtil {
 
     private final long EXPIRATION = 86400000; // 1 ngày
 
-    public String generateToken(String email, String role) {
+    public String generateToken(UUID userId, String role) {
         return Jwts.builder()
-                .setSubject(email)
-                .claim("role", role) // Add role vào claims
+                .setSubject(userId.toString()) // subject = UUID
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
 
-    public String extractEmail(String token) {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
+    public String extractUserId(String token) {
+        return Jwts.parser()
+                .setSigningKey(secret)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject(); // vì subject giờ là UUID
     }
 
     public String extractRole(String token) {

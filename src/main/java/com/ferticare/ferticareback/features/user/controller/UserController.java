@@ -1,5 +1,7 @@
 package com.ferticare.ferticareback.features.user.controller;
 
+import com.ferticare.ferticareback.features.profile.entity.Profile;
+import com.ferticare.ferticareback.features.profile.repository.ProfileRepository;
 import com.ferticare.ferticareback.features.role.entity.RoleType;
 import com.ferticare.ferticareback.features.user.dto.UserRegisterRequest;
 import com.ferticare.ferticareback.features.user.dto.UserResponse;
@@ -17,14 +19,18 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final ProfileRepository profileRepository;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, ProfileRepository profileRepository) {
         this.userService = userService;
+        this.profileRepository = profileRepository;
     }
 
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody UserRegisterRequest request) {
         try {
+            RoleType roleType = RoleType.CUSTOMER; // ✅ luôn là CUSTOMER khi user tự đăng ký
+
             User user = User.builder()
                     .fullName(request.getFullName())
                     .gender(request.getGender())
@@ -36,7 +42,14 @@ public class UserController {
                     .password(request.getPassword())
                     .build();
 
-            User savedUser = userService.save(user, RoleType.CUSTOMER);
+            User savedUser = userService.save(user, roleType);
+
+            // ✅ tạo profile tương ứng để tránh lỗi khi /api/profiles/me
+            Profile profile = Profile.builder()
+                    .user(savedUser)
+                    .status("active") // ✅ THÊM DÒNG NÀY để tránh lỗi NOT NULL
+                    .build();
+            profileRepository.save(profile);
 
             UserResponse response = UserResponse.builder()
                     .id(savedUser.getId())
@@ -57,24 +70,5 @@ public class UserController {
         } catch (Exception ex) {
             return ResponseEntity.internalServerError().body(Map.of("message", "Đăng ký thất bại."));
         }
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
-        Optional<User> userOpt = userService.findById(id);
-
-        return userOpt.map(user -> ResponseEntity.ok(UserResponse.builder()
-                        .id(user.getId())
-                        .fullName(user.getFullName())
-                        .gender(user.getGender())
-                        .dateOfBirth(user.getDateOfBirth())
-                        .email(user.getEmail())
-                        .phone(user.getPhone())
-                        .address(user.getAddress())
-                        .avatarUrl(user.getAvatarUrl())
-                        .createdAt(user.getCreatedAt())
-                        .updatedAt(user.getUpdatedAt())
-                        .build()))
-                .orElse(ResponseEntity.notFound().build());
     }
 }

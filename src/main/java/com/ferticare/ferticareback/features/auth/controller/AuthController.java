@@ -38,7 +38,7 @@ public class AuthController {
                     .orElseThrow(() -> new RuntimeException("Role not found"));
 
             // ✅ Sinh token với role từ bảng
-            String token = jwtUtil.generateToken(user.getEmail(), role.getRoleType());
+            String token = jwtUtil.generateToken(user.getId(), role.getRoleType());
 
             LoginResponse loginResponse = LoginResponse.builder()
                     .id(user.getId())

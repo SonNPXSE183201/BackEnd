@@ -27,13 +27,22 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users", "/api/auth/login").permitAll()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/users",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",           // ✅ API docs JSON
+                                "/swagger-ui/**",            // ✅ Swagger static files
+                                "/swagger-ui.html",          // ✅ Swagger entry page
+                                "/swagger-resources/**",     // ✅ resources nếu cần
+                                "/webjars/**"                // ✅ assets
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // ✅ Add here
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -41,7 +50,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Thay đổi theo địa chỉ frontend của bạn
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Thay đổi theo địa chỉ frontend
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

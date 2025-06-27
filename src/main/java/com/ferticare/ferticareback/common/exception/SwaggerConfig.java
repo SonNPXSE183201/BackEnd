@@ -26,7 +26,7 @@ public class SwaggerConfig {
                                         .name(securitySchemeName)
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT") // ✅ Chỉ rõ đây là JWT
+                                        .bearerFormat("JWT") // ✅ Token để đăng nhập.
                         ));
     }
 }

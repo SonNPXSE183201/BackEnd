@@ -1,15 +1,16 @@
 package com.ferticare.ferticareback.projectmanagementservice.profile.service.impl;
 
-import com.ferticare.ferticareback.projectmanagementservice.profile.dto.ManagerAdminProfileResponse;
-import com.ferticare.ferticareback.projectmanagementservice.profile.dto.BaseProfileResponse;
-import com.ferticare.ferticareback.projectmanagementservice.profile.dto.CustomerProfileResponse;
-import com.ferticare.ferticareback.projectmanagementservice.profile.dto.DoctorProfileResponse;
+import com.ferticare.ferticareback.projectmanagementservice.profile.constant.ProfileConstant;
 import com.ferticare.ferticareback.projectmanagementservice.profile.entity.Profile;
+import com.ferticare.ferticareback.projectmanagementservice.profile.mapper.ProfileMapper;
 import com.ferticare.ferticareback.projectmanagementservice.profile.repository.ProfileRepository;
-import com.ferticare.ferticareback.projectmanagementservice.usermanagement.repository.RoleRepository;
-import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.Role;
+import com.ferticare.ferticareback.projectmanagementservice.profile.response.CustomerProfileResponse;
+import com.ferticare.ferticareback.projectmanagementservice.profile.response.DoctorProfileResponse;
+import com.ferticare.ferticareback.projectmanagementservice.profile.response.ManagerAdminProfileResponse;
 import com.ferticare.ferticareback.projectmanagementservice.profile.service.ProfileService;
+import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.Role;
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.User;
+import com.ferticare.ferticareback.projectmanagementservice.usermanagement.repository.RoleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -28,59 +29,20 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public BaseProfileResponse getProfileByUserId(UUID userId) {
+    public Object getProfileByUserId(UUID userId) {
         Profile profile = profileRepository.findByUser_Id(userId)
-                .orElseThrow(() -> new RuntimeException("Profile not found"));
+                .orElseThrow(() -> new RuntimeException(ProfileConstant.PROFILE_NOT_FOUND));
 
         Role role = roleRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         User user = profile.getUser();
 
-        switch (role.getRoleType().toUpperCase()) {
-            case "DOCTOR":
-                return DoctorProfileResponse.builder()
-                        .avatarUrl(user.getAvatarUrl())
-                        .fullName(user.getFullName())
-                        .gender(user.getGender().name())
-                        .dateOfBirth(user.getDateOfBirth())
-                        .email(user.getEmail())
-                        .phone(user.getPhone())
-                        .address(user.getAddress())
-                        .specialty(profile.getSpecialty())
-                        .qualification(profile.getQualification())
-                        .experienceYears(profile.getExperienceYears())
-                        .build();
-
-            case "CUSTOMER":
-                return CustomerProfileResponse.builder()
-                        .avatarUrl(user.getAvatarUrl())
-                        .fullName(user.getFullName())
-                        .gender(user.getGender().name())
-                        .dateOfBirth(user.getDateOfBirth())
-                        .email(user.getEmail())
-                        .phone(user.getPhone())
-                        .address(user.getAddress())
-                        .maritalStatus(profile.getMaritalStatus())
-                        .healthBackground(profile.getHealthBackground())
-                        .build();
-
-            case "MANAGER":
-            case "ADMIN":
-                return ManagerAdminProfileResponse.builder()
-                        .avatarUrl(user.getAvatarUrl())
-                        .fullName(user.getFullName())
-                        .gender(user.getGender().name())
-                        .dateOfBirth(user.getDateOfBirth())
-                        .email(user.getEmail())
-                        .phone(user.getPhone())
-                        .address(user.getAddress())
-                        .assignedDepartment(profile.getAssignedDepartment())
-                        .extraPermissions(profile.getExtraPermissions())
-                        .build();
-
-            default:
-                throw new RuntimeException("Unsupported role: " + role.getRoleType());
-        }
+        return switch (role.getRoleType().toUpperCase()) {
+            case "DOCTOR" -> ProfileMapper.toDoctorResponse(user, profile);
+            case "CUSTOMER" -> ProfileMapper.toCustomerResponse(user, profile);
+            case "MANAGER", "ADMIN" -> ProfileMapper.toManagerAdminResponse(user, profile);
+            default -> throw new RuntimeException("Unsupported role: " + role.getRoleType());
+        };
     }
 }

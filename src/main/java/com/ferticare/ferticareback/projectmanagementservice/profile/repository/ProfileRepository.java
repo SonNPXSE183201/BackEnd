@@ -7,6 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProfileRepository extends JpaRepository<Profile, UUID> {
-//    Optional<Profile> findByUser_Id(UUID id);
     Optional<Profile> findByUser_Id(UUID userId);
 }

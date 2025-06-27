@@ -5,6 +5,7 @@ import com.ferticare.ferticareback.projectmanagementservice.blogmanagement.dto.r
 import com.ferticare.ferticareback.projectmanagementservice.blogmanagement.entity.Blog;
 import com.ferticare.ferticareback.projectmanagementservice.blogmanagement.repository.BlogRepository;
 import com.ferticare.ferticareback.projectmanagementservice.blogmanagement.service.BlogService;
+import com.ferticare.ferticareback.projectmanagementservice.configuration.security.auth.JwtUtil;
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.Role;
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.repository.RoleRepository;
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.User;
@@ -23,6 +24,7 @@ public class BlogServiceImpl implements BlogService {
     private final BlogRepository blogRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final JwtUtil jwtUtil;
 
     @Override
     public BlogResponse create(BlogRequest request, String authorEmail) {
@@ -134,5 +136,58 @@ public class BlogServiceImpl implements BlogService {
         blogRepository.delete(blog);
     }
 
+    @Override
+    public BlogResponse createBlogWithAuth(String authToken, BlogRequest request) {
+        User user = getUserFromToken(authToken);
+        request.setStatus("draft");
+        return create(request, user.getEmail());
+    }
 
+    @Override
+    public BlogResponse getBlogByIdWithAuth(String authToken, UUID id) {
+        BlogResponse blog = getById(id);
+        
+        if (!"published".equalsIgnoreCase(blog.getStatus())) {
+            User user = getUserFromToken(authToken);
+            boolean isAuthor = blog.getAuthorName().equals(user.getFullName());
+            Role role = roleRepository.findByUser(user)
+                    .orElseThrow(() -> new RuntimeException("Role not found"));
+            boolean isManager = role.getRoleLevel() == 3;
+
+            if (!isAuthor && !isManager) {
+                throw new RuntimeException("Access denied: only author or manager can view this blog");
+            }
+        }
+        
+        return blog;
+    }
+
+    @Override
+    public void deleteBlogWithAuth(String authToken, UUID id) {
+        User user = getUserFromToken(authToken);
+        deleteBlog(id, user.getEmail());
+    }
+
+    @Override
+    public void archiveBlogWithAuth(String authToken, UUID id) {
+        User user = getUserFromToken(authToken);
+        archiveBlog(id, user.getEmail());
+    }
+
+    @Override
+    public List<BlogResponse> getMyBlogsWithAuth(String authToken) {
+        User user = getUserFromToken(authToken);
+        return getBlogsByUser(user.getEmail());
+    }
+
+    private User getUserFromToken(String authToken) {
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            throw new RuntimeException("Invalid authorization token");
+        }
+        
+        String token = authToken.substring(7);
+        String userId = jwtUtil.extractUserId(token);
+        return userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }

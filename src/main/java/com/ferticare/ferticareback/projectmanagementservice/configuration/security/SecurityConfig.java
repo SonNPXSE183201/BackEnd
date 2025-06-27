@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/login",
+                                "/api/auth/google-login",
                                 "/api/users",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -40,14 +41,17 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/api/services",
-                                "/api/service-request",
-                                "/by-service/{serviceId}"
+                                "/api/notifications/verify-email",
+                                "/api/notifications/request-password-reset",
+                                "/api/notifications/reset-password"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ADMIN")
-//                        .requestMatchers("/api/service-request").authenticated()
+                        .requestMatchers("/api/service-request").authenticated()
+                        .requestMatchers("/api/service-request/available-doctors/**").authenticated()
+                        .requestMatchers("/api/service-request/doctor-available-times/**").authenticated()
                         .requestMatchers("/api/doctor/schedule").hasAuthority("DOCTOR")
                         .requestMatchers("/api/doctors").hasAuthority("MANAGER")
                         .anyRequest().authenticated()

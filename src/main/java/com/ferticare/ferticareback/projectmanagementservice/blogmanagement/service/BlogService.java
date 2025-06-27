@@ -15,5 +15,10 @@ public interface BlogService {
     void approveBlog(UUID blogId);
     void archiveBlog(UUID id, String email);
     void deleteBlog(UUID blogId, String email);
-
+    
+    BlogResponse createBlogWithAuth(String authToken, BlogRequest request);
+    BlogResponse getBlogByIdWithAuth(String authToken, UUID id);
+    void deleteBlogWithAuth(String authToken, UUID id);
+    void archiveBlogWithAuth(String authToken, UUID id);
+    List<BlogResponse> getMyBlogsWithAuth(String authToken);
 }

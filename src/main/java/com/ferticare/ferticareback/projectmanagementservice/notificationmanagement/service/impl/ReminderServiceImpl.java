@@ -39,7 +39,7 @@ public class ReminderServiceImpl implements ReminderService {
     @Autowired
     private EmailService emailService;
 
-    @Scheduled(fixedRate = 3000) // Chạy mỗi 5 phút (300000ms)
+    @Scheduled(fixedRate = 300000) // Chạy mỗi 5 phút (300000ms)
     public void processReminders() {
         System.out.println("🔄 Đang kiểm tra reminders...");
         System.out.println("⏰ Thời gian hiện tại: " + LocalDateTime.now());

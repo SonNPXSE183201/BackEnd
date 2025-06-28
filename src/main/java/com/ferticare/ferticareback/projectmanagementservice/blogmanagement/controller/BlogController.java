@@ -4,6 +4,7 @@ import com.ferticare.ferticareback.projectmanagementservice.configuration.securi
 import com.ferticare.ferticareback.projectmanagementservice.blogmanagement.dto.request.BlogRequest;
 import com.ferticare.ferticareback.projectmanagementservice.blogmanagement.dto.response.BlogResponse;
 import com.ferticare.ferticareback.projectmanagementservice.blogmanagement.service.BlogService;
+import com.ferticare.ferticareback.projectmanagementservice.configuration.security.auth.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class BlogController {
 
     private final BlogService blogService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping
     public ResponseEntity<BlogResponse> createBlog(
@@ -32,7 +34,7 @@ public class BlogController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BlogResponse> getBlogById(
-            @RequestHeader(value = "Authorization", required = false) String authHeader, 
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @PathVariable UUID id) {
         try {
             BlogResponse blog;
@@ -40,7 +42,7 @@ public class BlogController {
                 blog = blogService.getBlogByIdWithAuth(authHeader, id);
             } else {
                 blog = blogService.getById(id);
-                // Only allow published blogs for unauthenticated users
+                // Chỉ cho phép xem blog đã xuất bản đối với người dùng chưa xác thực
                 if (!"published".equalsIgnoreCase(blog.getStatus())) {
                     return ResponseEntity.status(401).body(null);
                 }
@@ -58,11 +60,11 @@ public class BlogController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteBlog(
-            @RequestHeader("Authorization") String authHeader, 
+            @RequestHeader("Authorization") String authHeader,
             @PathVariable UUID id) {
         try {
             blogService.deleteBlogWithAuth(authHeader, id);
-            return ResponseEntity.ok("Deleted");
+            return ResponseEntity.ok("Đã xóa");
         } catch (RuntimeException ex) {
             return ResponseEntity.status(403).body(ex.getMessage());
         }
@@ -70,11 +72,11 @@ public class BlogController {
 
     @PutMapping("/{id}/archive")
     public ResponseEntity<?> archiveBlog(
-            @RequestHeader("Authorization") String authHeader, 
+            @RequestHeader("Authorization") String authHeader,
             @PathVariable UUID id) {
         try {
             blogService.archiveBlogWithAuth(authHeader, id);
-            return ResponseEntity.ok("Blog archived.");
+            return ResponseEntity.ok("Đã lưu trữ blog.");
         } catch (RuntimeException ex) {
             return ResponseEntity.status(403).body(ex.getMessage());
         }
@@ -82,10 +84,14 @@ public class BlogController {
 
     @PutMapping("/{id}/approve")
     @ManagerOnly
-    public ResponseEntity<?> approveBlog(@PathVariable UUID id) {
+    public ResponseEntity<?> approveBlog(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable UUID id) {
         try {
-            blogService.approveBlog(id);
-            return ResponseEntity.ok("Blog approved and published.");
+            String token = authHeader.substring(7);
+            String userId = jwtUtil.extractUserId(token);
+            blogService.approveBlog(id, UUID.fromString(userId));
+            return ResponseEntity.ok("Blog đã được duyệt và xuất bản.");
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
@@ -95,6 +101,18 @@ public class BlogController {
     @ManagerOnly
     public ResponseEntity<List<BlogResponse>> getAllBlogsForManager() {
         return ResponseEntity.ok(blogService.getAllBlogs());
+    }
+
+    @GetMapping("/pending")
+    @ManagerOnly
+    public ResponseEntity<List<BlogResponse>> getPendingBlogs() {
+        return ResponseEntity.ok(blogService.getPendingBlogs());
+    }
+
+    @GetMapping("/status/{status}")
+    @ManagerOnly
+    public ResponseEntity<List<BlogResponse>> getBlogsByStatus(@PathVariable String status) {
+        return ResponseEntity.ok(blogService.getBlogsByStatus(status));
     }
 
     @GetMapping("/my")

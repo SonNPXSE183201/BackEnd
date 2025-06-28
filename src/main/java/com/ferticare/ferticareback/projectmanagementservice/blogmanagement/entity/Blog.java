@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -33,11 +35,16 @@ public class Blog {
     @Column(name = "cover_image")
     private String coverImage;
 
+    @ElementCollection
+    @CollectionTable(name = "blog_images", joinColumns = @JoinColumn(name = "blog_id"))
+    @Column(name = "image_path")
+    private List<String> images = new ArrayList<>();
+
     @Column(columnDefinition = "TEXT")
     private String tags;
 
     @Column(nullable = false)
-    private String status; // draft, published, archived
+    private String status; // draft, pending, published, archived
 
     @Column(name = "view_count")
     private int viewCount = 0;
@@ -47,6 +54,12 @@ public class Blog {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "approved_by")
+    private UUID approvedBy;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
 
     @PrePersist
     public void onCreate() {

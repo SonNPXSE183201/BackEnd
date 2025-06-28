@@ -34,19 +34,27 @@ public class BlogController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BlogResponse> getBlogById(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @PathVariable UUID id) {
+            @PathVariable UUID id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             BlogResponse blog;
-            if (authHeader != null) {
+
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                // Có authentication - sử dụng method có đếm view
                 blog = blogService.getBlogByIdWithAuth(authHeader, id);
             } else {
+                // Không có authentication - chỉ lấy blog và đếm view cơ bản
                 blog = blogService.getById(id);
+
                 // Chỉ cho phép xem blog đã xuất bản đối với người dùng chưa xác thực
                 if (!"published".equalsIgnoreCase(blog.getStatus())) {
                     return ResponseEntity.status(401).body(null);
                 }
+
+                // Tăng view count cho blog đã xuất bản (không có tracking)
+                blogService.incrementViewCount(id);
             }
+
             return ResponseEntity.ok(blog);
         } catch (RuntimeException ex) {
             return ResponseEntity.status(403).body(null);
@@ -123,6 +131,16 @@ public class BlogController {
             return ResponseEntity.ok(blogs);
         } catch (RuntimeException ex) {
             return ResponseEntity.status(401).body(null);
+        }
+    }
+
+    @GetMapping("/{id}/view-count")
+    public ResponseEntity<Integer> getBlogViewCount(@PathVariable UUID id) {
+        try {
+            BlogResponse blog = blogService.getById(id);
+            return ResponseEntity.ok(blog.getViewCount());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(404).body(null);
         }
     }
 }

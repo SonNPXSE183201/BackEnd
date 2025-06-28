@@ -12,4 +12,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
     // Trả về tất cả comment của 1 blog, chỉ lấy comment đang hiển thị
     List<Comment> findByBlogBlogIdAndIsVisibleTrueOrderByCreatedAtAsc(UUID blogId);
+
+    // Trả về tất cả replies của 1 comment, chỉ lấy comment đang hiển thị
+    List<Comment> findByParentAndIsVisibleTrueOrderByCreatedAtAsc(Comment parent);
 }

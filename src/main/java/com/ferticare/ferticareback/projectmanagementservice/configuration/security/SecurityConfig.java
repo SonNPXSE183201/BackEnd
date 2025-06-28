@@ -46,7 +46,10 @@ public class SecurityConfig {
                                 "/api/notifications/reset-password",
                                 "/api/blogs/published",
                                 "/api/blog-images/**",
-                                "/api/blogs/{id}"
+                                "/api/blogs/{id}",
+                                "/api/blogs/{id}/view-count",
+                                "/api/comments/blog/{blogId}",
+                                "/api/comments/blog/{blogId}/count"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("ADMIN")
@@ -55,6 +58,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/service-request").authenticated()
                         .requestMatchers("/api/service-request/available-doctors/**").authenticated()
                         .requestMatchers("/api/service-request/doctor-available-times/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/comments").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/comments/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/*").authenticated()
                         .requestMatchers("/api/doctor/schedule").hasAuthority("DOCTOR")
                         .requestMatchers("/api/doctors").hasAuthority("MANAGER")
                         .requestMatchers("/api/blogs/all").hasAuthority("MANAGER")

@@ -43,7 +43,10 @@ public class SecurityConfig {
                                 "/api/services",
                                 "/api/notifications/verify-email",
                                 "/api/notifications/request-password-reset",
-                                "/api/notifications/reset-password"
+                                "/api/notifications/reset-password",
+                                "/api/blogs/published",
+                                "/api/blog-images/**",
+                                "/api/blogs/{id}"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("ADMIN")
@@ -54,6 +57,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/service-request/doctor-available-times/**").authenticated()
                         .requestMatchers("/api/doctor/schedule").hasAuthority("DOCTOR")
                         .requestMatchers("/api/doctors").hasAuthority("MANAGER")
+                        .requestMatchers("/api/blogs/all").hasAuthority("MANAGER")
+                        .requestMatchers("/api/blogs/status/{status}").hasAuthority("MANAGER")
+                        .requestMatchers("/api/blogs/pending").hasAuthority("MANAGER")
+                        .requestMatchers("/api/blogs/approve/{id}").hasAuthority("MANAGER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

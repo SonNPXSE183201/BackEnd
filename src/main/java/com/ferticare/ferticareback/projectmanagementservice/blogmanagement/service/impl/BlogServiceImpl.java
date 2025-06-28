@@ -14,8 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,11 @@ public class BlogServiceImpl implements BlogService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
+
+    // Cache để tránh đếm lượt xem nhiều lần từ cùng một người dùng trong một phiên
+    private final ConcurrentHashMap<String, Long> viewTracking = new ConcurrentHashMap<>();
+
+    private static final long VIEW_EXPIRY_TIME = 30 * 60 * 1000; // 30 phút
 
     @Override
     public BlogResponse create(BlogRequest request, String authorEmail) {
@@ -37,8 +44,13 @@ public class BlogServiceImpl implements BlogService {
                 .content(request.getContent())
                 .coverImage(request.getCoverImage())
                 .tags(request.getTags())
-                .status(request.getStatus())
+                .status(request.getStatus() != null ? request.getStatus() : "pending") // Mặc định là "pending"
                 .build();
+
+        // Thêm danh sách hình ảnh nếu có
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            blog.setImages(new ArrayList<>(request.getImages()));
+        }
 
         Blog saved = blogRepository.save(blog);
         return toResponse(saved);
@@ -59,6 +71,20 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
+    public List<BlogResponse> getPendingBlogs() {
+        return blogRepository.findByStatus("pending").stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<BlogResponse> getBlogsByStatus(String status) {
+        return blogRepository.findByStatus(status).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
     public void archiveBlog(UUID id, String email) {
         Blog blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
@@ -67,7 +93,7 @@ public class BlogServiceImpl implements BlogService {
             Role role = roleRepository.findByUser(blog.getAuthor())
                     .orElseThrow(() -> new RuntimeException("Role not found"));
             if (role.getRoleLevel() != 3) {
-                throw new RuntimeException("Unauthorized to archive blog");
+                throw new RuntimeException("Không có quyền lưu trữ blog");
             }
         }
 
@@ -76,28 +102,52 @@ public class BlogServiceImpl implements BlogService {
         blogRepository.save(blog);
     }
 
+    @Override
+    public void incrementViewCount(UUID blogId) {
+        Blog blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        blog.setViewCount(blog.getViewCount() + 1);
+        blogRepository.save(blog);
+    }
+
     private BlogResponse toResponse(Blog blog) {
+        User approver = null;
+        if (blog.getApprovedBy() != null) {
+            approver = userRepository.findById(blog.getApprovedBy()).orElse(null);
+        }
+
         return BlogResponse.builder()
                 .blogId(blog.getBlogId())
+                .authorId(blog.getAuthor().getId())
                 .authorName(blog.getAuthor().getFullName())
                 .title(blog.getTitle())
                 .content(blog.getContent())
                 .coverImage(blog.getCoverImage())
+                .images(blog.getImages())
                 .tags(blog.getTags())
                 .status(blog.getStatus())
                 .viewCount(blog.getViewCount())
                 .createdAt(blog.getCreatedAt())
                 .updatedAt(blog.getUpdatedAt())
+                .approvedBy(blog.getApprovedBy())
+                .approvedAt(blog.getApprovedAt())
+                .approverName(approver != null ? approver.getFullName() : null)
                 .build();
     }
 
     @Override
-    public void approveBlog(UUID blogId) {
+    public void approveBlog(UUID blogId, UUID managerId) {
         Blog blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
 
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new RuntimeException("Manager not found"));
+
         blog.setStatus("published");
         blog.setUpdatedAt(LocalDateTime.now());
+        blog.setApprovedBy(managerId);
+        blog.setApprovedAt(LocalDateTime.now());
         blogRepository.save(blog);
     }
 
@@ -130,7 +180,7 @@ public class BlogServiceImpl implements BlogService {
         boolean isManager = role.getRoleLevel() == 3;
 
         if (!isAuthor && !isManager) {
-            throw new RuntimeException("Access denied: only author or manager can delete");
+            throw new RuntimeException("Từ chối truy cập: chỉ tác giả hoặc quản lý có thể xóa");
         }
 
         blogRepository.delete(blog);
@@ -139,26 +189,38 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public BlogResponse createBlogWithAuth(String authToken, BlogRequest request) {
         User user = getUserFromToken(authToken);
-        request.setStatus("draft");
+        // Mặc định blog mới là "pending" để chờ duyệt
+        request.setStatus("pending");
         return create(request, user.getEmail());
     }
 
     @Override
     public BlogResponse getBlogByIdWithAuth(String authToken, UUID id) {
         BlogResponse blog = getById(id);
-        
+
+        // Chỉ có thể xem blog đã xuất bản hoặc nếu là tác giả hoặc quản lý
         if (!"published".equalsIgnoreCase(blog.getStatus())) {
             User user = getUserFromToken(authToken);
-            boolean isAuthor = blog.getAuthorName().equals(user.getFullName());
+            boolean isAuthor = blog.getAuthorId().equals(user.getId());
             Role role = roleRepository.findByUser(user)
                     .orElseThrow(() -> new RuntimeException("Role not found"));
             boolean isManager = role.getRoleLevel() == 3;
 
             if (!isAuthor && !isManager) {
-                throw new RuntimeException("Access denied: only author or manager can view this blog");
+                throw new RuntimeException("Từ chối truy cập: chỉ tác giả hoặc quản lý có thể xem blog này");
+            }
+        } else {
+            // Tăng lượt xem cho blog đã xuất bản
+            String trackingKey = id + ":" + authToken.substring(0, Math.min(10, authToken.length()));
+            long currentTime = System.currentTimeMillis();
+            Long lastViewTime = viewTracking.get(trackingKey);
+
+            if (lastViewTime == null || currentTime - lastViewTime > VIEW_EXPIRY_TIME) {
+                incrementViewCount(id);
+                viewTracking.put(trackingKey, currentTime);
             }
         }
-        
+
         return blog;
     }
 
@@ -182,9 +244,9 @@ public class BlogServiceImpl implements BlogService {
 
     private User getUserFromToken(String authToken) {
         if (authToken == null || !authToken.startsWith("Bearer ")) {
-            throw new RuntimeException("Invalid authorization token");
+            throw new RuntimeException("Token xác thực không hợp lệ");
         }
-        
+
         String token = authToken.substring(7);
         String userId = jwtUtil.extractUserId(token);
         return userRepository.findById(UUID.fromString(userId))

@@ -12,13 +12,17 @@ public interface BlogService {
     List<BlogResponse> getPublishedBlogs();
     List<BlogResponse> getAllBlogs();
     List<BlogResponse> getBlogsByUser(String email);
-    void approveBlog(UUID blogId);
+    void approveBlog(UUID blogId, UUID managerId);
     void archiveBlog(UUID id, String email);
     void deleteBlog(UUID blogId, String email);
-    
+
     BlogResponse createBlogWithAuth(String authToken, BlogRequest request);
     BlogResponse getBlogByIdWithAuth(String authToken, UUID id);
     void deleteBlogWithAuth(String authToken, UUID id);
     void archiveBlogWithAuth(String authToken, UUID id);
     List<BlogResponse> getMyBlogsWithAuth(String authToken);
+
+    List<BlogResponse> getPendingBlogs();
+    void incrementViewCount(UUID blogId);
+    List<BlogResponse> getBlogsByStatus(String status);
 }

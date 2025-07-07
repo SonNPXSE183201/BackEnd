@@ -12,23 +12,23 @@ import java.util.UUID;
 
 @Repository
 public interface DoctorWorkScheduleRepository extends JpaRepository<DoctorWorkSchedule, UUID> {
-    
+
     // Lấy lịch làm việc của bác sĩ theo ngày trong tuần
     List<DoctorWorkSchedule> findByDoctorIdAndDayOfWeek(UUID doctorId, Integer dayOfWeek);
-    
+
     // Lấy tất cả lịch làm việc của bác sĩ
     List<DoctorWorkSchedule> findByDoctorId(UUID doctorId);
-    
+
     // Lấy lịch làm việc có sẵn trong khoảng thời gian
     @Query("SELECT dws FROM DoctorWorkSchedule dws " +
-           "WHERE dws.doctorId = :doctorId " +
-           "AND dws.dayOfWeek = :dayOfWeek " +
-           "AND dws.startTime <= CAST(:time AS time) " +
-           "AND dws.endTime > CAST(:time AS time)")
-    List<DoctorWorkSchedule> findAvailableSlots(@Param("doctorId") UUID doctorId, 
-                                               @Param("dayOfWeek") Integer dayOfWeek, 
-                                               @Param("time") LocalTime time);
-    
+            "WHERE dws.doctorId = :doctorId " +
+            "AND dws.dayOfWeek = :dayOfWeek " +
+            "AND dws.startTime <= CAST(:time AS time) " +
+            "AND dws.endTime > CAST(:time AS time)")
+    List<DoctorWorkSchedule> findAvailableSlots(@Param("doctorId") UUID doctorId,
+                                                @Param("dayOfWeek") Integer dayOfWeek,
+                                                @Param("time") LocalTime time);
+
     // Lấy lịch làm việc theo chuyên ngành (tạm thời comment để tránh lỗi)
     /*
     @Query("SELECT dws FROM DoctorWorkSchedule dws " +

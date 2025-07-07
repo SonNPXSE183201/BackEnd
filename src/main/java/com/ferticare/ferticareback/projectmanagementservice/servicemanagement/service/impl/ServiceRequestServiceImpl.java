@@ -18,11 +18,14 @@ import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entit
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.repository.UserRepository;
 import com.ferticare.ferticareback.projectmanagementservice.profile.entity.Profile;
 import com.ferticare.ferticareback.projectmanagementservice.profile.repository.ProfileRepository;
+import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.dto.request.ClinicalResultRequest;
+import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.service.ClinicalResultService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.repository.TreatmentScheduleRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,6 +48,8 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
     private final JwtUtil jwtUtil;
     private final AppointmentEmailService appointmentEmailService;
     private final ReminderLogRepository reminderLogRepository;
+    private final ClinicalResultService clinicalResultService;
+    private final TreatmentScheduleRepository treatmentScheduleRepository;
 
     @Override
     public ResponseEntity<?> handleRequest(UUID userId, ServiceRequestDTO dto) {
@@ -85,7 +90,7 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
         // Kiểm tra duplicate request (cùng customer, service, thời gian)
         boolean duplicateExists = requestRepository.existsByCustomerIdAndServiceIdAndPreferredDatetime(
                 userId, dto.getServiceId(), preferredTime);
-        
+
         if (duplicateExists) {
             System.out.println(">>> Request trùng lặp: customer=" + userId + ", service=" + dto.getServiceId() + ", time=" + preferredTime);
             return ResponseEntity.badRequest().body("Bạn đã có lịch hẹn cho dịch vụ này vào thời gian này rồi!");
@@ -148,25 +153,25 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
             if (doctor != null) {
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-                
+
                 String appointmentDate = preferredTime.toLocalDate().format(dateFormatter);
                 String appointmentTime = preferredTime.toLocalTime().format(timeFormatter);
-                
+
                 // Lấy số phòng từ lịch làm việc của bác sĩ
                 String room = getRoomForDoctor(assignedDoctorId, preferredTime);
-                
+
                 AppointmentEmailDTO emailDTO = AppointmentEmailDTO.builder()
-                    .customerName(user.getFullName())
-                    .customerEmail(user.getEmail())
-                    .doctorName(doctor.getFullName())
-                    .serviceName(specialty)
-                    .appointmentDate(appointmentDate)
-                    .appointmentTime(appointmentTime)
-                    .room(room)
-                    .notes(dto.getNote())
-                    .status("Scheduled")
-                    .build();
-                
+                        .customerName(user.getFullName())
+                        .customerEmail(user.getEmail())
+                        .doctorName(doctor.getFullName())
+                        .serviceName(specialty)
+                        .appointmentDate(appointmentDate)
+                        .appointmentTime(appointmentTime)
+                        .room(room)
+                        .notes(dto.getNote())
+                        .status("Scheduled")
+                        .build();
+
                 appointmentEmailService.sendAppointmentConfirmation(emailDTO);
             }
         } catch (Exception e) {
@@ -177,16 +182,16 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
         // Lấy thông tin đầy đủ từ customer profile
         Optional<Profile> customerProfileOpt = profileRepository.findByUser_Id(userId);
         Profile customerProfile = customerProfileOpt.orElse(null);
-        
-        // Lấy thông tin đầy đủ từ doctor profile  
+
+        // Lấy thông tin đầy đủ từ doctor profile
         User doctor = userRepository.findById(assignedDoctorId).orElse(null);
         Optional<Profile> doctorProfileOpt = doctor != null ? profileRepository.findByUser_Id(doctor.getId()) : Optional.empty();
         Profile doctorProfile = doctorProfileOpt.orElse(null);
-        
+
         // Tạo response với thông tin đầy đủ
         Map<String, Object> response = new HashMap<>();
         response.put("id", request.getRequestId());
-        
+
         // Customer info từ profile
         Map<String, Object> customerInfo = new HashMap<>();
         customerInfo.put("fullName", user.getFullName());
@@ -196,16 +201,16 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
         customerInfo.put("gender", user.getGender() != null ? user.getGender().name() : null);
         customerInfo.put("dateOfBirth", user.getDateOfBirth());
         customerInfo.put("avatarUrl", user.getAvatarUrl());
-        
+
         if (customerProfile != null) {
             customerInfo.put("maritalStatus", customerProfile.getMaritalStatus());
             customerInfo.put("healthBackground", customerProfile.getHealthBackground());
         }
         response.put("customer", customerInfo);
-        
+
         // Service info
         response.put("service", Map.of("id", dto.getServiceId(), "name", specialty));
-        
+
         // Doctor info từ profile
         if (doctor != null) {
             Map<String, Object> doctorInfo = new HashMap<>();
@@ -215,7 +220,7 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
             doctorInfo.put("phone", doctor.getPhone());
             doctorInfo.put("gender", doctor.getGender() != null ? doctor.getGender().name() : null);
             doctorInfo.put("avatarUrl", doctor.getAvatarUrl());
-            
+
             if (doctorProfile != null) {
                 doctorInfo.put("specialty", doctorProfile.getSpecialty());
                 doctorInfo.put("qualification", doctorProfile.getQualification());
@@ -227,7 +232,7 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
         } else {
             response.put("doctor", null);
         }
-        
+
         // Appointment info
         response.put("appointmentDate", preferredTime != null ? preferredTime.toLocalDate() : null);
         response.put("appointmentTime", preferredTime != null ? preferredTime.toLocalTime() : null);
@@ -242,22 +247,27 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
     private void createAppointment(UUID doctorId, UUID customerId, LocalDateTime time, UUID requestId) {
         Appointment appointment = new Appointment();
         appointment.setAppointmentId(UUID.randomUUID());
-        appointment.setCustomerId(customerId);
         appointment.setDoctorId(doctorId);
+        appointment.setCustomerId(customerId);
         appointment.setAppointmentTime(time);
         appointment.setRequestId(requestId);
-        
         // Lấy số phòng từ lịch làm việc của bác sĩ
         String room = getRoomForDoctor(doctorId, time);
         appointment.setRoom(room);
-        
         appointment.setCreatedAt(LocalDateTime.now());
         appointment.setUpdatedAt(LocalDateTime.now());
         appointment.setCheckInStatus("Pending");
         appointmentRepository.save(appointment);
-        
+
         // Tạo ReminderLog entries cho 24h và 2h reminders
         createReminderLogs(appointment.getAppointmentId(), time);
+
+        // TỰ ĐỘNG TẠO CLINICAL RESULT RỖNG
+        ClinicalResultRequest clinicalResultRequest = new ClinicalResultRequest();
+        clinicalResultRequest.setAppointmentId(appointment.getAppointmentId());
+        clinicalResultRequest.setPatientId(customerId);
+        clinicalResultRequest.setDoctorId(doctorId);
+        clinicalResultService.createClinicalResultWithDoctor(clinicalResultRequest, doctorId.toString());
     }
 
     /**
@@ -267,27 +277,27 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
         try {
             // Tạo reminder 24 giờ trước
             ReminderLog reminder24h = ReminderLog.builder()
-                .reminderId(UUID.randomUUID())
-                .appointmentId(appointmentId)
-                .reminderTime(appointmentTime.minusHours(24))
-                .channel("EMAIL")
-                .status("PENDING")
-                .build();
+                    .reminderId(UUID.randomUUID())
+                    .appointmentId(appointmentId)
+                    .reminderTime(appointmentTime.minusHours(24))
+                    .channel("EMAIL")
+                    .status("PENDING")
+                    .build();
             reminderLogRepository.save(reminder24h);
-            
+
             // Tạo reminder 2 giờ trước
             ReminderLog reminder2h = ReminderLog.builder()
-                .reminderId(UUID.randomUUID())
-                .appointmentId(appointmentId)
-                .reminderTime(appointmentTime.minusHours(2))
-                .channel("EMAIL")
-                .status("PENDING")
-                .build();
+                    .reminderId(UUID.randomUUID())
+                    .appointmentId(appointmentId)
+                    .reminderTime(appointmentTime.minusHours(2))
+                    .channel("EMAIL")
+                    .status("PENDING")
+                    .build();
             reminderLogRepository.save(reminder2h);
-            
-            System.out.println("✅ Đã tạo ReminderLog cho appointment " + appointmentId + 
-                             " - 24h: " + reminder24h.getReminderTime() + 
-                             " - 2h: " + reminder2h.getReminderTime());
+
+            System.out.println("✅ Đã tạo ReminderLog cho appointment " + appointmentId +
+                    " - 24h: " + reminder24h.getReminderTime() +
+                    " - 2h: " + reminder2h.getReminderTime());
         } catch (Exception e) {
             System.err.println("❌ Lỗi khi tạo ReminderLog: " + e.getMessage());
         }
@@ -301,23 +311,23 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
             // Lấy ngày trong tuần (2=Thứ 2, 3=Thứ 3, ..., 8=Chủ nhật)
             int dayOfWeek = appointmentTime.getDayOfWeek().getValue();
             LocalTime time = appointmentTime.toLocalTime();
-            
+
             System.out.println("🔍 Tìm phòng cho bác sĩ " + doctorId + " vào " + dayOfWeek + " lúc " + time);
-            
+
             // Tìm lịch làm việc của bác sĩ trong ngày này
             List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorIdAndDayOfWeek(doctorId, dayOfWeek);
-            
+
             System.out.println("📅 Tìm thấy " + schedules.size() + " lịch làm việc");
-            
+
             // Tìm lịch phù hợp với thời gian
             for (DoctorWorkSchedule schedule : schedules) {
-                if (time.isAfter(schedule.getStartTime().minusMinutes(1)) && 
-                    time.isBefore(schedule.getEndTime().plusMinutes(1))) {
+                if (time.isAfter(schedule.getStartTime().minusMinutes(1)) &&
+                        time.isBefore(schedule.getEndTime().plusMinutes(1))) {
                     System.out.println("✅ Tìm thấy phòng: " + schedule.getRoom());
                     return schedule.getRoom();
                 }
             }
-            
+
             // Nếu không tìm thấy, trả về phòng mặc định
             System.out.println("⚠️ Không tìm thấy phòng, dùng phòng mặc định");
             return "Phòng chờ";
@@ -333,7 +343,7 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
     private boolean isValidAppointmentDate(LocalDateTime appointmentTime) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime tomorrow = now.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        
+
         return appointmentTime.isAfter(tomorrow) || appointmentTime.toLocalDate().isAfter(now.toLocalDate());
     }
 
@@ -344,28 +354,28 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
     public ResponseEntity<?> getDoctorSchedule(UUID doctorId) {
         try {
             List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctorId);
-            
+
             User doctor = userRepository.findById(doctorId).orElse(null);
             if (doctor == null) {
                 return ResponseEntity.notFound().build();
             }
-            
+
             Map<String, Object> result = new HashMap<>();
             result.put("doctorId", doctorId);
             result.put("doctorName", doctor.getFullName());
-            
+
             List<Map<String, Object>> scheduleList = schedules.stream()
-                .map(schedule -> {
-                    Map<String, Object> scheduleMap = new HashMap<>();
-                    scheduleMap.put("dayOfWeek", schedule.getDayOfWeek());
-                    scheduleMap.put("dayName", getDayName(schedule.getDayOfWeek()));
-                    scheduleMap.put("startTime", schedule.getStartTime());
-                    scheduleMap.put("endTime", schedule.getEndTime());
-                    scheduleMap.put("room", schedule.getRoom());
-                    return scheduleMap;
-                })
-                .collect(Collectors.toList());
-            
+                    .map(schedule -> {
+                        Map<String, Object> scheduleMap = new HashMap<>();
+                        scheduleMap.put("dayOfWeek", schedule.getDayOfWeek());
+                        scheduleMap.put("dayName", getDayName(schedule.getDayOfWeek()));
+                        scheduleMap.put("startTime", schedule.getStartTime());
+                        scheduleMap.put("endTime", schedule.getEndTime());
+                        scheduleMap.put("room", schedule.getRoom());
+                        return scheduleMap;
+                    })
+                    .collect(Collectors.toList());
+
             result.put("schedules", scheduleList);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -379,13 +389,13 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
      */
     private String getDayName(Integer dayOfWeek) {
         switch (dayOfWeek) {
-            case 2: return "Thứ 2";
-            case 3: return "Thứ 3";
-            case 4: return "Thứ 4";
-            case 5: return "Thứ 5";
-            case 6: return "Thứ 6";
-            case 7: return "Thứ 7";
-            case 8: return "Chủ nhật";
+            case 1: return "Thứ 2";    // MONDAY
+            case 2: return "Thứ 3";    // TUESDAY
+            case 3: return "Thứ 4";    // WEDNESDAY
+            case 4: return "Thứ 5";    // THURSDAY
+            case 5: return "Thứ 6";    // FRIDAY
+            case 6: return "Thứ 7";    // SATURDAY
+            case 7: return "Chủ nhật"; // SUNDAY
             default: return "Không xác định";
         }
     }
@@ -406,61 +416,61 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
             String specialty = serviceRepository.findById(serviceId)
                     .map(s -> s.getName())
                     .orElse(null);
-                    
+
             if (specialty == null) {
                 return ResponseEntity.badRequest().body("Không tìm thấy dịch vụ.");
             }
-            
+
             // Lấy tất cả bác sĩ có chuyên ngành này và đang active
             List<Object[]> doctorRows = userRepository.findDoctorWithScheduleBySpecialty(specialty);
-            
+
             List<Map<String, Object>> doctors = new ArrayList<>();
-            
+
             for (Object[] row : doctorRows) {
                 UUID doctorId = (UUID) row[0];
                 String doctorName = (String) row[1];
-                
+
                 // Lấy lịch làm việc mới từ bảng doctor_work_schedule
                 List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctorId);
-                
+
                 if (!schedules.isEmpty()) {
                     Map<String, Object> doctor = new HashMap<>();
                     doctor.put("id", doctorId);
                     doctor.put("name", doctorName);
                     doctor.put("specialty", specialty);
-                    
+
                     // Chuyển đổi lịch làm việc thành format mới
                     List<Map<String, Object>> workSchedule = schedules.stream()
-                        .map(schedule -> {
-                            Map<String, Object> scheduleMap = new HashMap<>();
-                            scheduleMap.put("dayOfWeek", schedule.getDayOfWeek());
-                            scheduleMap.put("dayName", getDayName(schedule.getDayOfWeek()));
-                            scheduleMap.put("startTime", schedule.getStartTime().toString());
-                            scheduleMap.put("endTime", schedule.getEndTime().toString());
-                            scheduleMap.put("room", schedule.getRoom());
-                            return scheduleMap;
-                        })
-                        .collect(Collectors.toList());
-                    
+                            .map(schedule -> {
+                                Map<String, Object> scheduleMap = new HashMap<>();
+                                scheduleMap.put("dayOfWeek", schedule.getDayOfWeek());
+                                scheduleMap.put("dayName", getDayName(schedule.getDayOfWeek()));
+                                scheduleMap.put("startTime", schedule.getStartTime().toString());
+                                scheduleMap.put("endTime", schedule.getEndTime().toString());
+                                scheduleMap.put("room", schedule.getRoom());
+                                return scheduleMap;
+                            })
+                            .collect(Collectors.toList());
+
                     doctor.put("workSchedule", workSchedule);
                     doctors.add(doctor);
                 }
             }
-            
+
             return ResponseEntity.ok(doctors);
         } catch (Exception e) {
             System.err.println("❌ Lỗi khi lấy danh sách bác sĩ: " + e.getMessage());
             return ResponseEntity.status(500).body("Lỗi khi lấy danh sách bác sĩ");
         }
     }
-    
+
     /**
      * Lấy thời gian rảnh của bác sĩ trong ngày
      */
     @Override
     public ResponseEntity<?> getDoctorAvailableTimes(UUID doctorId, LocalDate date) {
         if (date != null) {
-            // Logic cũ: trả về slot của 1 ngày
+            // Logic: trả về slot của 1 ngày, loại trừ cả appointment và treatment_schedule
             try {
                 int dayOfWeek = date.getDayOfWeek().getValue();
                 List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorIdAndDayOfWeek(doctorId, dayOfWeek);
@@ -471,6 +481,11 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 LocalDateTime endOfDay = date.atTime(23, 59, 59);
                 List<LocalDateTime> bookedTimes = appointmentRepository.findAppointmentTimesByDoctorIdAndDateRange(
                         doctorId, startOfDay, endOfDay);
+                // Lấy thêm các slot đã book ở treatment_schedule
+                List<LocalDateTime> treatmentBookedTimes = treatmentScheduleRepository.findBookedTimesByDoctorIdAndDateRange(
+                        doctorId, startOfDay, endOfDay);
+                Set<LocalDateTime> allBookedTimes = new HashSet<>(bookedTimes);
+                allBookedTimes.addAll(treatmentBookedTimes);
                 List<Map<String, Object>> availableTimes = new ArrayList<>();
                 for (DoctorWorkSchedule schedule : schedules) {
                     LocalTime startTime = schedule.getStartTime();
@@ -478,7 +493,7 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                     for (LocalTime currentTime = startTime; currentTime.isBefore(endTime); currentTime = currentTime.plusHours(1)) {
                         LocalDateTime dateTime = date.atTime(currentTime);
                         final LocalTime finalCurrentTime = currentTime;
-                        boolean isAvailable = bookedTimes.stream()
+                        boolean isAvailable = allBookedTimes.stream()
                                 .noneMatch(bookedTime -> bookedTime.toLocalTime().equals(finalCurrentTime));
                         if (isAvailable) {
                             Map<String, Object> slot = new HashMap<>();
@@ -495,7 +510,7 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 return ResponseEntity.status(500).body("Lỗi khi lấy thời gian rảnh");
             }
         } else {
-            // Logic mới: trả về slot của 30 ngày tới (bắt đầu từ ngày mai)
+            // Logic: trả về slot của 30 ngày tới (bắt đầu từ ngày mai), loại trừ cả appointment và treatment_schedule
             try {
                 List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctorId);
                 if (schedules.isEmpty()) {
@@ -507,20 +522,24 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 for (LocalDate d = today.plusDays(1); !d.isAfter(endDate); d = d.plusDays(1)) {
                     int dayOfWeek = d.getDayOfWeek().getValue();
                     List<DoctorWorkSchedule> daySchedules = schedules.stream()
-                        .filter(sch -> sch.getDayOfWeek().equals(dayOfWeek))
-                        .toList();
+                            .filter(sch -> sch.getDayOfWeek().equals(dayOfWeek))
+                            .toList();
                     if (daySchedules.isEmpty()) continue;
                     LocalDateTime startOfDay = d.atStartOfDay();
                     LocalDateTime endOfDay = d.atTime(23, 59, 59);
                     List<LocalDateTime> bookedTimes = appointmentRepository.findAppointmentTimesByDoctorIdAndDateRange(
                             doctorId, startOfDay, endOfDay);
+                    List<LocalDateTime> treatmentBookedTimes = treatmentScheduleRepository.findBookedTimesByDoctorIdAndDateRange(
+                            doctorId, startOfDay, endOfDay);
+                    Set<LocalDateTime> allBookedTimes = new HashSet<>(bookedTimes);
+                    allBookedTimes.addAll(treatmentBookedTimes);
                     for (DoctorWorkSchedule schedule : daySchedules) {
                         LocalTime startTime = schedule.getStartTime();
                         LocalTime endTime = schedule.getEndTime();
                         for (LocalTime currentTime = startTime; currentTime.isBefore(endTime); currentTime = currentTime.plusHours(1)) {
                             LocalDateTime dateTime = d.atTime(currentTime);
                             final LocalTime finalCurrentTime = currentTime;
-                            boolean isAvailable = bookedTimes.stream()
+                            boolean isAvailable = allBookedTimes.stream()
                                     .noneMatch(bookedTime -> bookedTime.toLocalTime().equals(finalCurrentTime));
                             if (isAvailable) {
                                 Map<String, Object> slot = new HashMap<>();
@@ -561,50 +580,50 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
         try {
             // Lấy lịch làm việc của bác sĩ
             List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctorId);
-            
+
             if (schedules.isEmpty()) {
                 return ResponseEntity.ok(List.of());
             }
-            
+
             LocalDate today = LocalDate.now();
             LocalDate endDate = today.plusDays(30);
-            
+
             List<Map<String, Object>> availableDates = new ArrayList<>();
-            
+
             // Duyệt qua 30 ngày tới
             for (LocalDate date = today.plusDays(1); !date.isAfter(endDate); date = date.plusDays(1)) {
                 int dayOfWeek = date.getDayOfWeek().getValue();
-                
+
                 // Kiểm tra xem bác sĩ có làm việc vào ngày này không
                 boolean hasSchedule = schedules.stream()
-                    .anyMatch(schedule -> schedule.getDayOfWeek().equals(dayOfWeek));
-                
+                        .anyMatch(schedule -> schedule.getDayOfWeek().equals(dayOfWeek));
+
                 if (hasSchedule) {
                     Map<String, Object> dateInfo = new HashMap<>();
                     dateInfo.put("date", date.toString());
                     dateInfo.put("dayOfWeek", dayOfWeek);
                     dateInfo.put("dayName", getDayName(dayOfWeek));
-                    
+
                     // Lấy thông tin lịch làm việc trong ngày
                     List<DoctorWorkSchedule> daySchedules = schedules.stream()
-                        .filter(schedule -> schedule.getDayOfWeek().equals(dayOfWeek))
-                        .collect(Collectors.toList());
-                    
+                            .filter(schedule -> schedule.getDayOfWeek().equals(dayOfWeek))
+                            .collect(Collectors.toList());
+
                     List<Map<String, Object>> timeSlots = daySchedules.stream()
-                        .map(schedule -> {
-                            Map<String, Object> slot = new HashMap<>();
-                            slot.put("startTime", schedule.getStartTime().toString());
-                            slot.put("endTime", schedule.getEndTime().toString());
-                            slot.put("room", schedule.getRoom());
-                            return slot;
-                        })
-                        .collect(Collectors.toList());
-                    
+                            .map(schedule -> {
+                                Map<String, Object> slot = new HashMap<>();
+                                slot.put("startTime", schedule.getStartTime().toString());
+                                slot.put("endTime", schedule.getEndTime().toString());
+                                slot.put("room", schedule.getRoom());
+                                return slot;
+                            })
+                            .collect(Collectors.toList());
+
                     dateInfo.put("timeSlots", timeSlots);
                     availableDates.add(dateInfo);
                 }
             }
-            
+
             return ResponseEntity.ok(availableDates);
         } catch (Exception e) {
             System.err.println("❌ Lỗi khi lấy danh sách ngày có thể đặt lịch: " + e.getMessage());
@@ -620,31 +639,31 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
         try {
             LocalDateTime startOfDay = date.atStartOfDay();
             LocalDateTime endOfDay = date.atTime(23, 59, 59);
-            
+
             // Lấy danh sách appointment của bác sĩ trong ngày
             List<LocalDateTime> appointmentTimes = appointmentRepository.findAppointmentTimesByDoctorIdAndDateRange(
                     doctorId, startOfDay, endOfDay);
-            
+
             List<Map<String, Object>> appointments = new ArrayList<>();
-            
+
             for (LocalDateTime appointmentTime : appointmentTimes) {
                 // Lấy thông tin chi tiết appointment
                 List<Appointment> appointmentList = appointmentRepository.findAll().stream()
-                    .filter(a -> a.getDoctorId().equals(doctorId) && a.getAppointmentTime().equals(appointmentTime))
-                    .collect(Collectors.toList());
-                
+                        .filter(a -> a.getDoctorId().equals(doctorId) && a.getAppointmentTime().equals(appointmentTime))
+                        .collect(Collectors.toList());
+
                 if (!appointmentList.isEmpty()) {
                     Appointment appointment = appointmentList.get(0);
-                    
+
                     // Lấy thông tin khách hàng
                     User customer = userRepository.findById(appointment.getCustomerId()).orElse(null);
-                    
+
                     Map<String, Object> appointmentInfo = new HashMap<>();
                     appointmentInfo.put("appointmentId", appointment.getAppointmentId());
                     appointmentInfo.put("appointmentTime", appointment.getAppointmentTime());
                     appointmentInfo.put("room", appointment.getRoom());
                     appointmentInfo.put("checkInStatus", appointment.getCheckInStatus());
-                    
+
                     if (customer != null) {
                         Map<String, Object> customerInfo = new HashMap<>();
                         customerInfo.put("name", customer.getFullName());
@@ -652,21 +671,105 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                         customerInfo.put("email", customer.getEmail());
                         appointmentInfo.put("customer", customerInfo);
                     }
-                    
+
                     appointments.add(appointmentInfo);
                 }
             }
-            
+
             Map<String, Object> result = new HashMap<>();
             result.put("date", date.toString());
             result.put("doctorId", doctorId);
             result.put("totalAppointments", appointments.size());
             result.put("appointments", appointments);
-            
+
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             System.err.println("❌ Lỗi khi lấy lịch hẹn của bác sĩ: " + e.getMessage());
             return ResponseEntity.status(500).body("Lỗi khi lấy lịch hẹn");
+        }
+    }
+
+    /**
+     * Lấy danh sách bệnh nhân của bác sĩ (từ tất cả appointments)
+     */
+    @Override
+    public ResponseEntity<?> getDoctorPatients(UUID doctorId) {
+        try {
+            // Lấy tất cả appointments của bác sĩ
+            List<Appointment> appointments = appointmentRepository.findAll().stream()
+                    .filter(a -> a.getDoctorId().equals(doctorId))
+                    .collect(Collectors.toList());
+
+            // Lấy danh sách unique patient IDs
+            Set<UUID> patientIds = appointments.stream()
+                    .map(Appointment::getCustomerId)
+                    .collect(Collectors.toSet());
+
+            List<Map<String, Object>> patients = new ArrayList<>();
+
+            for (UUID patientId : patientIds) {
+                User patient = userRepository.findById(patientId).orElse(null);
+                if (patient != null) {
+                    // Lấy thông tin profile của bệnh nhân
+                    Optional<Profile> patientProfile = profileRepository.findByUser_Id(patientId);
+
+                    // Đếm số lần đến khám
+                    long appointmentCount = appointments.stream()
+                            .filter(a -> a.getCustomerId().equals(patientId))
+                            .count();
+
+                    // Lấy lịch hẹn gần nhất
+                    Optional<Appointment> latestAppointment = appointments.stream()
+                            .filter(a -> a.getCustomerId().equals(patientId))
+                            .max(Comparator.comparing(Appointment::getAppointmentTime));
+
+                    Map<String, Object> patientInfo = new HashMap<>();
+                    patientInfo.put("patientId", patient.getId());
+                    patientInfo.put("fullName", patient.getFullName());
+                    patientInfo.put("email", patient.getEmail());
+                    patientInfo.put("phone", patient.getPhone());
+                    patientInfo.put("gender", patient.getGender() != null ? patient.getGender().name() : null);
+                    patientInfo.put("dateOfBirth", patient.getDateOfBirth());
+                    patientInfo.put("address", patient.getAddress());
+                    patientInfo.put("avatarUrl", patient.getAvatarUrl());
+                    patientInfo.put("appointmentCount", appointmentCount);
+
+                    if (latestAppointment.isPresent()) {
+                        patientInfo.put("latestAppointment", latestAppointment.get().getAppointmentTime());
+                        patientInfo.put("latestAppointmentStatus", latestAppointment.get().getCheckInStatus());
+                    }
+
+                    if (patientProfile.isPresent()) {
+                        Profile profile = patientProfile.get();
+                        patientInfo.put("profileStatus", profile.getStatus());
+                        patientInfo.put("maritalStatus", profile.getMaritalStatus());
+                        patientInfo.put("healthBackground", profile.getHealthBackground());
+                        patientInfo.put("notes", profile.getNotes());
+                    }
+
+                    patients.add(patientInfo);
+                }
+            }
+
+            // Sắp xếp theo lịch hẹn gần nhất
+            patients.sort((p1, p2) -> {
+                LocalDateTime time1 = (LocalDateTime) p1.get("latestAppointment");
+                LocalDateTime time2 = (LocalDateTime) p2.get("latestAppointment");
+                if (time1 == null && time2 == null) return 0;
+                if (time1 == null) return 1;
+                if (time2 == null) return -1;
+                return time2.compareTo(time1); // Sắp xếp giảm dần (mới nhất trước)
+            });
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("doctorId", doctorId);
+            result.put("totalPatients", patients.size());
+            result.put("patients", patients);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi khi lấy danh sách bệnh nhân của bác sĩ: " + e.getMessage());
+            return ResponseEntity.status(500).body("Lỗi khi lấy danh sách bệnh nhân");
         }
     }
 }

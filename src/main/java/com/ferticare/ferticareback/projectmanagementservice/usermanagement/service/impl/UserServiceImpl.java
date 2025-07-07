@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -232,16 +233,16 @@ public class UserServiceImpl implements UserService {
     public List<DoctorScheduleDTO> getDoctorsWithSchedule() {
         // Lấy tất cả bác sĩ
         List<User> doctors = userRepository.findAllDoctors();
-        
+
         return doctors.stream()
                 .map(doctor -> {
                     // Lấy thông tin từ profile
                     Profile profile = profileRepository.findByUser_Id(doctor.getId()).orElse(null);
                     String specialty = profile != null ? profile.getSpecialty() : "Không xác định";
-                    
+
                     // Lấy lịch làm việc từ bảng DoctorWorkSchedule mới
                     List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctor.getId());
-                    
+
                     List<DoctorScheduleDTO.WorkSchedule> workSchedules = schedules.stream()
                             .map(schedule -> new DoctorScheduleDTO.WorkSchedule(
                                     schedule.getDayOfWeek(),
@@ -251,7 +252,7 @@ public class UserServiceImpl implements UserService {
                                     schedule.getRoom()
                             ))
                             .toList();
-                    
+
                     return new DoctorScheduleDTO(
                             doctor.getId(),
                             doctor.getFullName(),
@@ -263,18 +264,53 @@ public class UserServiceImpl implements UserService {
                 })
                 .toList();
     }
-    
+
     private String getDayName(Integer dayOfWeek) {
         return switch (dayOfWeek) {
-            case 2 -> "Thứ 2";
-            case 3 -> "Thứ 3";
-            case 4 -> "Thứ 4";
-            case 5 -> "Thứ 5";
-            case 6 -> "Thứ 6";
-            case 7 -> "Thứ 7";
-            case 8 -> "Chủ nhật";
+            case 1 -> "Thứ 2";
+            case 2 -> "Thứ 3";
+            case 3 -> "Thứ 4";
+            case 4 -> "Thứ 5";
+            case 5 -> "Thứ 6";
+            case 6 -> "Thứ 7";
+            case 7 -> "Chủ nhật";
             default -> "Không xác định";
         };
+    }
+
+    @Override
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserResponse> getUsersByRole(RoleType roleType) {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .filter(user -> {
+                    Optional<Role> role = roleRepository.findByUser(user);
+                    return role.isPresent() && role.get().getRoleType().equals(roleType.name());
+                })
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    private UserResponse convertToUserResponse(User user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .gender(user.getGender())
+                .dateOfBirth(user.getDateOfBirth())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .avatarUrl(user.getAvatarUrl())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
     }
 
     // New method for Google users that doesn't check for existing email

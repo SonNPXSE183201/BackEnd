@@ -8,6 +8,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerProfileResponse {
+    // User information (from users table)
     private String avatarUrl;
     private String fullName;
     private String gender;
@@ -15,6 +16,8 @@ public class CustomerProfileResponse {
     private String email;
     private String phone;
     private String address;
+    
+    // Customer personal information (from profile table)
     private String maritalStatus;
     private String healthBackground;
 }

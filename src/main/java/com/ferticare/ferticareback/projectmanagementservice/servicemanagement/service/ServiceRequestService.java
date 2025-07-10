@@ -22,4 +22,7 @@ public interface ServiceRequestService {
     ResponseEntity<?> getAvailableDates(UUID doctorId);
     
     ResponseEntity<?> getDoctorAppointments(UUID doctorId, LocalDate date);
+    
+    // Doctor's patients management
+    ResponseEntity<?> getDoctorPatients(UUID doctorId);
 } 

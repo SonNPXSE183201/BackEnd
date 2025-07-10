@@ -16,6 +16,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
     // ✅ Kiểm tra bác sĩ có bị trùng lịch
     boolean existsByDoctorIdAndAppointmentTime(UUID doctorId, LocalDateTime appointmentTime);
 
+    // ✅ Lấy danh sách appointment theo customerId
+    List<Appointment> findByCustomerId(UUID customerId);
+
+    // ✅ Lấy danh sách appointment theo doctorId
+    List<Appointment> findByDoctorId(UUID doctorId);
 
     // ✅ Trả về danh sách bác sĩ bận ở thời điểm đó
     @Query("SELECT a.doctorId FROM Appointment a WHERE a.appointmentTime = :time")

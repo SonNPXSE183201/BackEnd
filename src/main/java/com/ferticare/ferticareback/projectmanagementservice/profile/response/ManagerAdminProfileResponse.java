@@ -8,6 +8,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ManagerAdminProfileResponse {
+    // User information (from users table)
     private String avatarUrl;
     private String fullName;
     private String gender;
@@ -15,6 +16,8 @@ public class ManagerAdminProfileResponse {
     private String email;
     private String phone;
     private String address;
+    
+    // Work information (from profile table)
     private String assignedDepartment;
     private String extraPermissions;
 }

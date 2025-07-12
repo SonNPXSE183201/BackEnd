@@ -38,7 +38,11 @@ public class TreatmentPlanRequest {
     private String planDescription;             // Mô tả kế hoạch điều trị
 
     private Integer estimatedDurationDays;      // Thời gian ước tính (ngày)
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private BigDecimal estimatedCost;           // Chi phí ước tính
 
     // === CÁC BƯỚC ĐIỀU TRỊ ===
@@ -48,9 +52,15 @@ public class TreatmentPlanRequest {
 
     // === ĐÁNH GIÁ VÀ TIÊN LƯỢNG ===
     private BigDecimal successProbability;      // Tỷ lệ thành công dự kiến (%)
+<<<<<<< HEAD
+    
+    private String riskFactors;                 // Yếu tố nguy cơ
+    
+=======
 
     private String riskFactors;                 // Yếu tố nguy cơ
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private String contraindications;           // Chống chỉ định
 
     // === LỊCH TRÌNH ===
@@ -63,4 +73,8 @@ public class TreatmentPlanRequest {
 
     // === GHI CHÚ ===
     private String notes;                       // Ghi chú thêm từ bác sĩ
+<<<<<<< HEAD
+} 
+=======
 }
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

@@ -32,7 +32,7 @@ public interface UserService {
 
     // Doctor service methods
     List<DoctorScheduleDTO> getDoctorsWithSchedule();
-
+    
     // Admin user management methods
     List<UserResponse> getAllUsers();
     List<UserResponse> getUsersByRole(RoleType roleType);

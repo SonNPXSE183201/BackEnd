@@ -34,7 +34,11 @@ public class ClinicalResultRequest {
 
     // === DẤU HIỆU LÂM SÀNG ===
     private Integer bloodPressureSystolic;   // Huyết áp tâm thu
+<<<<<<< HEAD
+    private Integer bloodPressureDiastolic;  // Huyết áp tâm trương  
+=======
     private Integer bloodPressureDiastolic;  // Huyết áp tâm trương
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private BigDecimal temperature;          // Nhiệt độ (°C)
     private Integer heartRate;               // Nhịp tim (lần/phút)
     private BigDecimal weight;               // Cân nặng (kg)
@@ -42,17 +46,29 @@ public class ClinicalResultRequest {
 
     // === XÉT NGHIỆM MÁU ===
     private BigDecimal fshLevel;            // FSH (mIU/mL)
+<<<<<<< HEAD
+    private BigDecimal lhLevel;             // LH (mIU/mL)  
+=======
     private BigDecimal lhLevel;             // LH (mIU/mL)
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private BigDecimal estradiolLevel;      // Estradiol (pg/mL)
     private BigDecimal testosteroneLevel;   // Testosterone (ng/mL)
     private BigDecimal amhLevel;            // AMH (ng/mL)
     private BigDecimal prolactinLevel;      // Prolactin (ng/mL)
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     // === XÉT NGHIỆM KHÁC ===
     private BigDecimal glucose;             // Glucose (mg/dL)
     private BigDecimal hemoglobin;          // Hemoglobin (g/dL)
     private BigDecimal creatinine;          // Creatinine (mg/dL)
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     // === SIÊU ÂM CHI TIẾT ===
     private BigDecimal endometrialThickness; // Độ dày nội mạc tử cung (mm)
     private BigDecimal ovarySizeLeft;       // Kích thước buồng trứng trái (cm)
@@ -64,7 +80,11 @@ public class ClinicalResultRequest {
     // === CHẨN ĐOÁN LÂM SÀNG ===
     @Size(max = 500, message = "Diagnosis must not exceed 500 characters")
     private String diagnosis;               // Nhập chuẩn đoán
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private String diagnosisCode;           // Mã chẩn đoán (ICD-10)
     private String severityLevel;           // Mức độ nghiêm trọng
     private Integer infertilityDurationMonths; // Thời gian vô sinh (tháng)
@@ -95,4 +115,8 @@ public class ClinicalResultRequest {
 
     // === LIÊN KẾT VỚI APPOINTMENT ===
     private UUID appointmentId; // Liên kết với appointment
+<<<<<<< HEAD
+} 
+=======
 }
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

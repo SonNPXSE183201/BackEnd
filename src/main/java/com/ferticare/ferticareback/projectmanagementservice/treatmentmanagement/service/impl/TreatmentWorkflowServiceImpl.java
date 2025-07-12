@@ -29,6 +29,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.dto.MedicationPlanDTO;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.dto.MonitoringScheduleDTO;
+<<<<<<< HEAD
+import com.ferticare.ferticareback.projectmanagementservice.profile.repository.ProfileRepository;
+=======
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +42,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
 
     private final ClinicalResultService clinicalResultService;
     private final EmailService emailService;
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private final ClinicalResultRepository clinicalResultRepository;
     private final TreatmentPlanRepository treatmentPlanRepository;
     private final TreatmentPhaseStatusRepository treatmentPhaseStatusRepository;
@@ -46,7 +54,12 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     private final TreatmentPlanTemplateRepository treatmentPlanTemplateRepository;
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
+<<<<<<< HEAD
+    private final ProfileRepository profileRepository;
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ========== WORKFLOW CHÍNH ==========
@@ -54,12 +67,31 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public TreatmentPlanResponse createTreatmentPlanFromClinicalResult(String clinicalResultId, TreatmentPlanRequest request, String doctorId) {
         log.info("Creating treatment plan from clinical result: {} by doctor: {}", clinicalResultId, doctorId);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Lấy clinical result
         ClinicalResultResponse clinicalResult = clinicalResultService.getClinicalResultById(clinicalResultId);
         if (clinicalResult == null) {
             throw new ResourceNotFoundException("Clinical result not found: " + clinicalResultId);
         }
+<<<<<<< HEAD
+        
+        // Set thông tin từ clinical result
+        request.setPatientId(clinicalResult.getPatientId());
+        
+        // Merge thông tin từ template vào request
+        mergeTemplateIntoRequest(request, doctorId);
+        
+        // Tạo treatment plan
+        TreatmentPlanResponse treatmentPlan = createTreatmentPlanWithDoctor(request, doctorId);
+        
+        // Gửi email thông báo cho bệnh nhân
+        sendTreatmentPhasesEmail(treatmentPlan.getPlanId());
+        
+=======
 
         // Set thông tin từ clinical result
         request.setPatientId(clinicalResult.getPatientId());
@@ -73,6 +105,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         // Gửi email thông báo cho bệnh nhân
         sendTreatmentPhasesEmail(treatmentPlan.getPlanId());
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         log.info("Treatment plan created successfully with phases and email notification: {}", treatmentPlan.getPlanId());
         return treatmentPlan;
     }
@@ -88,6 +121,22 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public void completeTreatmentPlan(UUID treatmentPlanId, String notes, String doctorId) {
         log.info("Completing treatment plan: {} with notes: {} by doctor: {}", treatmentPlanId, notes, doctorId);
+<<<<<<< HEAD
+        
+        // Cập nhật treatment plan status
+        TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
+                .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
+        
+        plan.setStatus("completed");
+        plan.setEndDate(LocalDateTime.now());
+        plan.setUpdatedBy(doctorId);
+        
+        treatmentPlanRepository.save(plan);
+        
+        // Gửi email thông báo hoàn thành
+        sendTreatmentCompletionEmail(treatmentPlanId);
+        
+=======
 
         // Cập nhật treatment plan status
         TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
@@ -102,12 +151,44 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         // Gửi email thông báo hoàn thành
         sendTreatmentCompletionEmail(treatmentPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         log.info("Treatment plan completed successfully: {}", treatmentPlanId);
     }
 
     @Override
     public void cancelTreatmentPlan(UUID treatmentPlanId, String reason, String doctorId) {
         log.info("Cancelling treatment plan: {} with reason: {} by doctor: {}", treatmentPlanId, reason, doctorId);
+<<<<<<< HEAD
+        
+        TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
+                .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
+        
+        plan.setStatus("cancelled");
+        plan.setUpdatedBy(doctorId);
+        treatmentPlanRepository.save(plan);
+
+        // Cập nhật trạng thái tất cả các phase thành Cancelled
+        List<TreatmentPhaseStatus> phaseStatuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
+        for (TreatmentPhaseStatus phaseStatus : phaseStatuses) {
+            phaseStatus.setStatus("Cancelled");
+            treatmentPhaseStatusRepository.save(phaseStatus);
+        }
+
+        // Gửi mail hủy lịch cho bệnh nhân với template màu hồng, có thông tin liên hệ
+        try {
+            Optional<User> patientOpt = userRepository.findById(plan.getPatientId());
+            Optional<User> doctorOpt = plan.getDoctorId() != null ? userRepository.findById(plan.getDoctorId()) : Optional.empty();
+            if (patientOpt.isPresent()) {
+                User patient = patientOpt.get();
+                User doctor = doctorOpt.orElse(null);
+                emailService.sendTreatmentCancelled(patient, doctor, plan, reason);
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi mail hủy kế hoạch điều trị: {}", e.getMessage());
+        }
+
+        log.info("Treatment plan and all phases cancelled successfully: {}", treatmentPlanId);
+=======
 
         TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
                 .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
@@ -118,17 +199,32 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         treatmentPlanRepository.save(plan);
 
         log.info("Treatment plan cancelled successfully: {}", treatmentPlanId);
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     }
 
     @Override
     public TreatmentPlanResponse recreateTreatmentPlanFromHistory(UUID patientId, UUID previousTreatmentPlanId, String doctorId) {
         log.info("Recreating treatment plan for patient: {} from previous plan: {} by doctor: {}", patientId, previousTreatmentPlanId, doctorId);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Lấy thông tin phác đồ cũ
         TreatmentPlanResponse previousPlan = getTreatmentPlanById(previousTreatmentPlanId);
         if (previousPlan == null) {
             throw new ResourceNotFoundException("Previous treatment plan not found: " + previousTreatmentPlanId);
         }
+<<<<<<< HEAD
+        
+        // Tạo request mới từ thông tin cũ
+        TreatmentPlanRequest newRequest = createRequestFromPreviousPlan(previousPlan);
+        newRequest.setPatientId(patientId);
+        
+        // Tạo phác đồ mới
+        TreatmentPlanResponse newPlan = createTreatmentPlanWithDoctor(newRequest, doctorId);
+        
+=======
 
         // Tạo request mới từ thông tin cũ
         TreatmentPlanRequest newRequest = createRequestFromPreviousPlan(previousPlan);
@@ -137,6 +233,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         // Tạo phác đồ mới
         TreatmentPlanResponse newPlan = createTreatmentPlanWithDoctor(newRequest, doctorId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         log.info("New treatment plan created from history: {}", newPlan.getPlanId());
         return newPlan;
     }
@@ -146,6 +243,16 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public TreatmentPlanResponse createTreatmentPlan(TreatmentPlanRequest request) {
         log.info("Creating treatment plan for patient: {}", request.getPatientId());
+<<<<<<< HEAD
+        
+        TreatmentPlan treatmentPlan = new TreatmentPlan();
+        org.springframework.beans.BeanUtils.copyProperties(request, treatmentPlan);
+        
+        // Generate UUID and sync both ID fields
+        UUID generatedPlanId = UUID.randomUUID();
+        treatmentPlan.setPlanId(generatedPlanId);
+        
+=======
 
         TreatmentPlan treatmentPlan = new TreatmentPlan();
         org.springframework.beans.BeanUtils.copyProperties(request, treatmentPlan);
@@ -154,6 +261,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         UUID generatedPlanId = UUID.randomUUID();
         treatmentPlan.setPlanId(generatedPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Chuyển đổi List sang JSON string cho các trường JSON
         try {
             if (request.getTreatmentSteps() != null) {
@@ -169,10 +277,17 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
             log.error("Error converting List to JSON string: {}", e.getMessage());
             throw new RuntimeException("Error processing treatment plan data", e);
         }
+<<<<<<< HEAD
+        
+        TreatmentPlan savedPlan = treatmentPlanRepository.save(treatmentPlan);
+        log.info("Treatment plan created with ID: {} (planId: {})", savedPlan.getPlanId(), savedPlan.getPlanId());
+        
+=======
 
         TreatmentPlan savedPlan = treatmentPlanRepository.save(treatmentPlan);
         log.info("Treatment plan created with ID: {} (planId: {})", savedPlan.getPlanId(), savedPlan.getPlanId());
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return convertToResponse(savedPlan);
     }
 
@@ -180,6 +295,22 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     public TreatmentPlanResponse createTreatmentPlanWithDoctor(TreatmentPlanRequest request, String doctorId) {
         log.info("Creating treatment plan for patient: {} by doctor: {}", request.getPatientId(), doctorId);
 
+<<<<<<< HEAD
+        // Kiểm tra quyền bác sĩ trước khi tạo treatment plan
+        String doctorSpecialty = getDoctorSpecialty(doctorId);
+        log.info("Doctor {} with specialty {} requesting to create treatment plan for type: {}", 
+                doctorId, doctorSpecialty, request.getTreatmentType());
+        
+        // Kiểm tra bác sĩ có quyền tạo treatment plan cho loại này không
+        if (!canDoctorAccessTemplate(doctorSpecialty, request.getTreatmentType())) {
+            throw new IllegalStateException(
+                String.format("Bác sĩ có specialty '%s' không được phép tạo treatment plan cho loại '%s'. " +
+                            "Chỉ bác sĩ IUI mới được tạo IUI, bác sĩ IVF mới được tạo IVF.", 
+                            doctorSpecialty, request.getTreatmentType()));
+        }
+
+=======
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Kiểm tra 1 bệnh nhân chỉ có 1 plan active
         List<TreatmentPlan> activePlans = treatmentPlanRepository.findByStatusAndPatientId("active", request.getPatientId());
         if (!activePlans.isEmpty()) {
@@ -194,11 +325,19 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
 
         TreatmentPlan treatmentPlan = new TreatmentPlan();
         org.springframework.beans.BeanUtils.copyProperties(request, treatmentPlan);
+<<<<<<< HEAD
+        
+        // Generate UUID and sync both ID fields
+        UUID generatedPlanId = UUID.randomUUID();
+        treatmentPlan.setPlanId(generatedPlanId);
+        
+=======
 
         // Generate UUID and sync both ID fields
         UUID generatedPlanId = UUID.randomUUID();
         treatmentPlan.setPlanId(generatedPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Tự động set các giá trị cần thiết
         treatmentPlan.setDoctorId(UUID.fromString(doctorId));
         // Không set createdBy/updatedBy ở đây, để JPA tự động qua BaseEntity
@@ -214,7 +353,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         if (request.getTreatmentCycle() != null) {
             treatmentPlan.setTreatmentCycle(request.getTreatmentCycle());
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Chuyển đổi List sang JSON string cho các trường JSON
         try {
             if (request.getTreatmentSteps() != null) {
@@ -230,7 +373,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
             log.error("Error converting List to JSON string: {}", e.getMessage());
             throw new RuntimeException("Error processing treatment plan data", e);
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         TreatmentPlan savedPlan = treatmentPlanRepository.save(treatmentPlan);
         log.info("Treatment plan created with ID: {} (planId: {})", savedPlan.getPlanId(), savedPlan.getPlanId());
         // Auto-generate phases from treatment_steps
@@ -277,7 +424,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         if (plan.getEndDate() == null && plan.getStartDate() != null && plan.getEstimatedDurationDays() != null) {
             plan.setEndDate(plan.getStartDate().plusDays(plan.getEstimatedDurationDays() + 1));
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Chuyển đổi List sang JSON string cho các trường JSON
         try {
             if (request.getTreatmentSteps() != null) {
@@ -293,7 +444,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
             log.error("Error converting List to JSON string: {}", e.getMessage());
             throw new RuntimeException("Error processing treatment plan data", e);
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         TreatmentPlan savedPlan = treatmentPlanRepository.save(plan);
         return convertToResponse(savedPlan);
     }
@@ -346,7 +501,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public List<TreatmentPlanResponse> getTreatmentPlansByType(String treatmentType) {
         log.info("Getting treatment plans by type: {}", treatmentType);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<TreatmentPlan> plans = treatmentPlanRepository.findByTreatmentType(treatmentType);
         return plans.stream()
                 .map(this::convertToResponse)
@@ -382,7 +541,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         if (!activePlans.isEmpty()) {
             TreatmentPlan activePlan = activePlans.get(0);
             List<TreatmentPhaseStatus> phases = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(activePlan.getPlanId());
+<<<<<<< HEAD
+            
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
             // Format bảng cho FE
             List<Map<String, Object>> tablePhases = phases.stream().map(phase -> {
                 Map<String, Object> row = new HashMap<>();
@@ -404,7 +567,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     public List<Map<String, Object>> getPatientTreatmentHistory(UUID patientId) {
         log.info("Getting treatment history for patient: {}", patientId);
         List<TreatmentPlan> completedPlans = treatmentPlanRepository.findByPatientIdAndStatusOrderByEndDateDesc(patientId, "completed");
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Format bảng cho FE
         List<Map<String, Object>> tableHistory = completedPlans.stream().map(plan -> {
             Map<String, Object> row = new HashMap<>();
@@ -419,7 +586,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
             row.put("estimatedCost", plan.getEstimatedCost());
             return row;
         }).toList();
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Trả về cả danh sách gốc và bảng
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> wrapper = new HashMap<>();
@@ -432,9 +603,15 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public List<Map<String, Object>> getDoctorTreatmentWorkload(String doctorId) {
         log.info("Getting treatment workload for doctor: {}", doctorId);
+<<<<<<< HEAD
+        
+        List<TreatmentPlan> activePlans = treatmentPlanRepository.findByDoctorIdOrderByCreatedDateDesc(UUID.fromString(doctorId));
+        
+=======
 
         List<TreatmentPlan> activePlans = treatmentPlanRepository.findByDoctorIdOrderByCreatedDateDesc(UUID.fromString(doctorId));
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return activePlans.stream()
                 .filter(plan -> "active".equals(plan.getStatus()))
                 .map(this::convertPlanToWorkloadMap)
@@ -444,24 +621,42 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public Map<String, Object> getPatientWorkflowStatus(UUID patientId) {
         log.info("Getting workflow status for patient: {}", patientId);
+<<<<<<< HEAD
+        
+        Map<String, Object> status = new HashMap<>();
+        
+=======
 
         Map<String, Object> status = new HashMap<>();
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Check clinical results
         List<ClinicalResultResponse> clinicalResults = getPatientClinicalResults(patientId);
         status.put("hasClinicalResults", !clinicalResults.isEmpty());
         status.put("latestClinicalResult", clinicalResults.isEmpty() ? null : clinicalResults.get(0));
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Check active treatment plan
         List<TreatmentPlan> activePlans = treatmentPlanRepository.findByStatusAndPatientId("active", patientId);
         status.put("hasActiveTreatmentPlan", !activePlans.isEmpty());
         status.put("activeTreatmentPlan", activePlans.isEmpty() ? null : activePlans.get(0));
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Check treatment history
         List<TreatmentPlan> allPlans = treatmentPlanRepository.findByPatientIdOrderByCreatedDateDesc(patientId);
         status.put("totalTreatmentPlans", allPlans.size());
         status.put("treatmentHistory", allPlans);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return status;
     }
 
@@ -472,7 +667,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         List<TreatmentPlan> activePlans = treatmentPlanRepository.findByDoctorIdOrderByCreatedDateDesc(doctorId)
                 .stream().filter(plan -> "active".equalsIgnoreCase(plan.getStatus())).toList();
         List<Map<String, Object>> tablePhases = new ArrayList<>();
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         for (TreatmentPlan plan : activePlans) {
             List<TreatmentPhaseStatus> phases = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(plan.getPlanId());
             for (TreatmentPhaseStatus phase : phases) {
@@ -501,15 +700,26 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public boolean canAdvanceToNextStep(UUID treatmentPlanId, Integer currentStep) {
         if (currentStep <= 0) return true; // Bước đầu tiên luôn được phép
+<<<<<<< HEAD
+        
+        // Kiểm tra bước trước đó đã hoàn thành chưa
+        List<TreatmentPhaseStatus> statuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
+        
+=======
 
         // Kiểm tra bước trước đó đã hoàn thành chưa
         List<TreatmentPhaseStatus> statuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         if (currentStep <= statuses.size()) {
             TreatmentPhaseStatus previousStepStatus = statuses.get(currentStep - 1);
             return "Completed".equals(previousStepStatus.getStatus());
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return false;
     }
 
@@ -529,6 +739,21 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public void sendTreatmentPhasesEmail(UUID treatmentPlanId) {
         log.info("Sending treatment phases email for plan: {}", treatmentPlanId);
+<<<<<<< HEAD
+        
+        try {
+            TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
+            
+            // Lấy thông tin bệnh nhân và bác sĩ
+            Optional<User> patientOpt = userRepository.findById(plan.getPatientId());
+            Optional<User> doctorOpt = plan.getDoctorId() != null ? userRepository.findById(plan.getDoctorId()) : Optional.empty();
+            
+            if (patientOpt.isPresent()) {
+                User patient = patientOpt.get();
+                User doctor = doctorOpt.orElse(null);
+                
+=======
 
         try {
             TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
@@ -542,6 +767,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                 User patient = patientOpt.get();
                 User doctor = doctorOpt.orElse(null);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
                 // Gửi email thông báo kế hoạch điều trị
                 emailService.sendTreatmentPhasesEmail(patient, doctor, plan);
                 log.info("Treatment phases email sent successfully for plan: {}", treatmentPlanId);
@@ -556,6 +782,21 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public void sendTreatmentCompletionEmail(UUID treatmentPlanId) {
         log.info("Sending treatment completion email for plan: {}", treatmentPlanId);
+<<<<<<< HEAD
+        
+        try {
+            TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
+            
+            // Lấy thông tin bệnh nhân và bác sĩ
+            Optional<User> patientOpt = userRepository.findById(plan.getPatientId());
+            Optional<User> doctorOpt = plan.getDoctorId() != null ? userRepository.findById(plan.getDoctorId()) : Optional.empty();
+            
+            if (patientOpt.isPresent()) {
+                User patient = patientOpt.get();
+                User doctor = doctorOpt.orElse(null);
+                
+=======
 
         try {
             TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
@@ -569,6 +810,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                 User patient = patientOpt.get();
                 User doctor = doctorOpt.orElse(null);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
                 // Gửi email thông báo hoàn thành điều trị
                 emailService.sendTreatmentCompletionEmail(patient, doctor, plan);
                 log.info("Treatment completion email sent successfully for plan: {}", treatmentPlanId);
@@ -583,7 +825,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public void sendAppointmentReminderEmail(UUID treatmentPlanId, Integer stepOrder) {
         log.info("Sending appointment reminder email for plan: {}, step: {}", treatmentPlanId, stepOrder);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         try {
             // TODO: Implement appointment reminder email logic
             log.info("Appointment reminder email sent successfully for plan: {}, step: {}", treatmentPlanId, stepOrder);
@@ -628,10 +874,30 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     }
 
     /**
+<<<<<<< HEAD
+     * Merge thông tin từ template vào request - có kiểm tra quyền bác sĩ
+     */
+    private void mergeTemplateIntoRequest(TreatmentPlanRequest request, String doctorId) {
+        try {
+            // Kiểm tra quyền bác sĩ trước khi merge template
+            String doctorSpecialty = getDoctorSpecialty(doctorId);
+            log.info("Doctor {} with specialty {} requesting template for treatment type: {}", 
+                    doctorId, doctorSpecialty, request.getTreatmentType());
+            
+            // Kiểm tra bác sĩ có quyền tạo treatment plan cho loại này không
+            if (!canDoctorAccessTemplate(doctorSpecialty, request.getTreatmentType())) {
+                throw new IllegalStateException(
+                    String.format("Bác sĩ có specialty '%s' không được phép tạo treatment plan cho loại '%s'. " +
+                                "Chỉ bác sĩ IUI mới được tạo IUI, bác sĩ IVF mới được tạo IVF.", 
+                                doctorSpecialty, request.getTreatmentType()));
+            }
+            
+=======
      * Merge thông tin từ template vào request
      */
     private void mergeTemplateIntoRequest(TreatmentPlanRequest request) {
         try {
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
             TreatmentPlanTemplate template = treatmentPlanTemplateRepository
                     .findByTreatmentTypeIgnoreCaseAndIsActiveTrue(request.getTreatmentType());
             if (template != null) {
@@ -678,14 +944,98 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                 }
                 // Set status = 'active' khi merge template
                 request.setStatus("active");
+<<<<<<< HEAD
+                log.info("Merged {} template '{}' into treatment plan request for doctor with specialty: {}", 
+                        template.getTreatmentType(), template.getName(), doctorSpecialty);
+=======
                 log.info("Merged {} template '{}' into treatment plan request",
                         template.getTreatmentType(), template.getName());
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
             } else {
                 log.warn("No active template found for treatment type: {}, using fallback", request.getTreatmentType());
                 request.setTemplateId(UUID.fromString("B193D4C1-D9EE-41B4-A417-4121075BB91E"));
             }
         } catch (Exception e) {
             log.error("Error merging template into request: {}", e.getMessage());
+<<<<<<< HEAD
+            throw new RuntimeException("Không thể tạo treatment plan: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Lấy specialty của bác sĩ từ profile
+     */
+    private String getDoctorSpecialty(String doctorId) {
+        try {
+            UUID doctorUuid = UUID.fromString(doctorId);
+            User doctor = userRepository.findById(doctorUuid)
+                    .orElseThrow(() -> new RuntimeException("Doctor not found"));
+            
+            return profileRepository.findByUser_Id(doctorUuid)
+                    .map(profile -> profile.getSpecialty())
+                    .orElse("UNKNOWN");
+        } catch (Exception e) {
+            log.error("Error getting doctor specialty: {}", e.getMessage());
+            return "UNKNOWN";
+        }
+    }
+    
+    /**
+     * Kiểm tra bác sĩ có quyền truy cập template không dựa trên specialty
+     */
+    private boolean canDoctorAccessTemplate(String doctorSpecialty, String treatmentType) {
+        // Logic phân quyền:
+        // - Bác sĩ IUI chỉ được truy cập template IUI
+        // - Bác sĩ IVF chỉ được truy cập template IVF
+        // - Bác sĩ có specialty khác hoặc UNKNOWN không được truy cập
+        
+        if (doctorSpecialty == null || doctorSpecialty.equals("UNKNOWN")) {
+            return false;
+        }
+        
+        String normalizedSpecialty = doctorSpecialty.toUpperCase().trim();
+        String normalizedTreatmentType = treatmentType.toUpperCase().trim();
+        
+        // Mapping specialty với treatment type
+        switch (normalizedSpecialty) {
+            case "IUI":
+                return "IUI".equals(normalizedTreatmentType);
+            case "IVF":
+                return "IVF".equals(normalizedTreatmentType);
+            case "ICSI":
+                return "ICSI".equals(normalizedTreatmentType);
+            default:
+                // Nếu specialty không khớp với treatment type nào, không cho phép
+                return false;
+        }
+    }
+    
+    // ========== PHASE MANAGEMENT METHODS ==========
+    
+    @Override
+    public PhaseStatusResponse updatePhaseStatus(UUID treatmentPlanId, UUID phaseId, PhaseStatusUpdateRequest request, String doctorId) {
+        log.info("Updating phase status for plan: {}, phase: {} by doctor: {}", treatmentPlanId, phaseId, doctorId);
+        
+        // Kiểm tra quyền truy cập
+        TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
+                .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
+        
+        if (!plan.getDoctorId().equals(UUID.fromString(doctorId))) {
+            throw new IllegalStateException("Only treating doctor can update phase status");
+        }
+        
+        // Lấy phase status hiện tại
+        TreatmentPhaseStatus phaseStatus = treatmentPhaseStatusRepository.findByTreatmentPlanIdAndPhaseId(treatmentPlanId, phaseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Phase status not found for plan: " + treatmentPlanId + ", phase: " + phaseId));
+        
+        // Lấy thông tin phase
+        TreatmentPhase phase = treatmentPhaseRepository.findById(phaseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Phase not found: " + phaseId));
+        
+        // Kiểm tra business rules
+        validatePhaseStatusUpdate(phaseStatus, request.getStatus(), treatmentPlanId);
+        
+=======
             request.setTemplateId(UUID.fromString("B193D4C1-D9EE-41B4-A417-4121075BB91E"));
         }
     }
@@ -715,24 +1065,52 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         // Kiểm tra business rules
         validatePhaseStatusUpdate(phaseStatus, request.getStatus(), treatmentPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Cập nhật trạng thái
         String oldStatus = phaseStatus.getStatus();
         phaseStatus.setStatus(request.getStatus());
         phaseStatus.setNotes(request.getNotes());
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Cập nhật thời gian
         if ("In Progress".equals(request.getStatus()) && phaseStatus.getStartDate() == null) {
             phaseStatus.setStartDate(LocalDateTime.now());
         } else if ("Completed".equals(request.getStatus())) {
             phaseStatus.setEndDate(LocalDateTime.now());
         }
+<<<<<<< HEAD
+        
+        treatmentPhaseStatusRepository.save(phaseStatus);
+        
+=======
 
         treatmentPhaseStatusRepository.save(phaseStatus);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Nếu hoàn thành phase, tự động mở phase tiếp theo
         if ("Completed".equals(request.getStatus())) {
             advanceToNextPhase(treatmentPlanId, phase.getPhaseOrder());
         }
+<<<<<<< HEAD
+        
+        // Có thể thêm logic xử lý clinical result ở đây nếu cần
+        
+        log.info("Phase status updated from {} to {} for plan: {}, phase: {}", 
+                oldStatus, request.getStatus(), treatmentPlanId, phaseId);
+        
+        return convertToPhaseStatusResponse(phaseStatus, phase);
+    }
+    
+    @Override
+    public List<PhaseStatusResponse> getTreatmentPlanPhases(UUID treatmentPlanId) {
+        log.info("Getting all phases for treatment plan: {}", treatmentPlanId);
+        
+        List<TreatmentPhaseStatus> phaseStatuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
+        
+=======
 
         // Có thể thêm logic xử lý clinical result ở đây nếu cần
 
@@ -748,6 +1126,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
 
         List<TreatmentPhaseStatus> phaseStatuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return phaseStatuses.stream()
                 .map(phaseStatus -> {
                     TreatmentPhase phase = treatmentPhaseRepository.findById(phaseStatus.getPhaseId())
@@ -756,6 +1135,15 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                 })
                 .collect(Collectors.toList());
     }
+<<<<<<< HEAD
+    
+    @Override
+    public PhaseStatusResponse getCurrentPhase(UUID treatmentPlanId) {
+        log.info("Getting current phase for treatment plan: {}", treatmentPlanId);
+        
+        List<TreatmentPhaseStatus> phaseStatuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
+        
+=======
 
     @Override
     public PhaseStatusResponse getCurrentPhase(UUID treatmentPlanId) {
@@ -763,12 +1151,17 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
 
         List<TreatmentPhaseStatus> phaseStatuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Tìm phase đang "In Progress"
         TreatmentPhaseStatus currentPhaseStatus = phaseStatuses.stream()
                 .filter(ps -> "In Progress".equals(ps.getStatus()))
                 .findFirst()
                 .orElse(null);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         if (currentPhaseStatus == null) {
             // Nếu không có phase nào đang "In Progress", tìm phase đầu tiên "Pending"
             currentPhaseStatus = phaseStatuses.stream()
@@ -776,6 +1169,21 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                     .findFirst()
                     .orElse(null);
         }
+<<<<<<< HEAD
+        
+        if (currentPhaseStatus == null) {
+            return null; // Không có phase nào đang thực hiện
+        }
+        
+        TreatmentPhase phase = treatmentPhaseRepository.findById(currentPhaseStatus.getPhaseId())
+                .orElse(null);
+        
+        return convertToPhaseStatusResponse(currentPhaseStatus, phase);
+    }
+    
+    // ========== PRIVATE HELPER METHODS FOR PHASE MANAGEMENT ==========
+    
+=======
 
         if (currentPhaseStatus == null) {
             return null; // Không có phase nào đang thực hiện
@@ -789,41 +1197,69 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
 
     // ========== PRIVATE HELPER METHODS FOR PHASE MANAGEMENT ==========
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private void validatePhaseStatusUpdate(TreatmentPhaseStatus currentPhaseStatus, String newStatus, UUID treatmentPlanId) {
         // Kiểm tra trạng thái hợp lệ
         Set<String> validStatuses = Set.of("Pending", "In Progress", "Completed", "Cancelled");
         if (!validStatuses.contains(newStatus)) {
             throw new IllegalArgumentException("Invalid status: " + newStatus + ". Valid statuses: " + validStatuses);
         }
+<<<<<<< HEAD
+        
+        // Kiểm tra logic chuyển đổi trạng thái
+        String currentStatus = currentPhaseStatus.getStatus();
+        
+=======
 
         // Kiểm tra logic chuyển đổi trạng thái
         String currentStatus = currentPhaseStatus.getStatus();
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Không cho phép chuyển từ Completed về trạng thái khác
         if ("Completed".equals(currentStatus) && !"Completed".equals(newStatus)) {
             throw new IllegalStateException("Cannot change status from Completed to " + newStatus);
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Không cho phép chuyển từ Cancelled về trạng thái khác
         if ("Cancelled".equals(currentStatus) && !"Cancelled".equals(newStatus)) {
             throw new IllegalStateException("Cannot change status from Cancelled to " + newStatus);
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Nếu muốn chuyển sang "In Progress", kiểm tra phase trước đã hoàn thành chưa
         if ("In Progress".equals(newStatus) && "Pending".equals(currentStatus)) {
             validateCanStartPhase(currentPhaseStatus, treatmentPlanId);
         }
     }
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private void validateCanStartPhase(TreatmentPhaseStatus phaseStatus, UUID treatmentPlanId) {
         // Lấy thông tin phase để biết thứ tự
         TreatmentPhase phase = treatmentPhaseRepository.findById(phaseStatus.getPhaseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Phase not found: " + phaseStatus.getPhaseId()));
+<<<<<<< HEAD
+        
+        // Nếu không phải phase đầu tiên, kiểm tra phase trước đã hoàn thành chưa
+        if (phase.getPhaseOrder() > 1) {
+            List<TreatmentPhaseStatus> allPhases = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
+            
+=======
 
         // Nếu không phải phase đầu tiên, kiểm tra phase trước đã hoàn thành chưa
         if (phase.getPhaseOrder() > 1) {
             List<TreatmentPhaseStatus> allPhases = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
             // Tìm phase trước đó
             TreatmentPhaseStatus previousPhaseStatus = allPhases.stream()
                     .filter(ps -> {
@@ -832,19 +1268,34 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                     })
                     .findFirst()
                     .orElse(null);
+<<<<<<< HEAD
+            
+            if (previousPhaseStatus != null && !"Completed".equals(previousPhaseStatus.getStatus())) {
+                throw new IllegalStateException("Cannot start phase " + phase.getPhaseOrder() + 
+=======
 
             if (previousPhaseStatus != null && !"Completed".equals(previousPhaseStatus.getStatus())) {
                 throw new IllegalStateException("Cannot start phase " + phase.getPhaseOrder() +
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
                         " because previous phase " + (phase.getPhaseOrder() - 1) + " is not completed");
             }
         }
     }
+<<<<<<< HEAD
+    
+    private void advanceToNextPhase(UUID treatmentPlanId, Integer completedPhaseOrder) {
+        log.info("Advancing to next phase after completing phase {} for plan: {}", completedPhaseOrder, treatmentPlanId);
+        
+        List<TreatmentPhaseStatus> allPhases = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
+        
+=======
 
     private void advanceToNextPhase(UUID treatmentPlanId, Integer completedPhaseOrder) {
         log.info("Advancing to next phase after completing phase {} for plan: {}", completedPhaseOrder, treatmentPlanId);
 
         List<TreatmentPhaseStatus> allPhases = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Tìm phase tiếp theo
         TreatmentPhaseStatus nextPhaseStatus = allPhases.stream()
                 .filter(ps -> {
@@ -853,25 +1304,41 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                 })
                 .findFirst()
                 .orElse(null);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         if (nextPhaseStatus != null && "Pending".equals(nextPhaseStatus.getStatus())) {
             // Mở phase tiếp theo
             nextPhaseStatus.setStatus("In Progress");
             nextPhaseStatus.setStartDate(LocalDateTime.now());
             treatmentPhaseStatusRepository.save(nextPhaseStatus);
+<<<<<<< HEAD
+            
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
             // Cập nhật current_phase trong treatment plan
             TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
                     .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
             plan.setCurrentPhase(nextPhaseStatus.getPhaseId());
             treatmentPlanRepository.save(plan);
+<<<<<<< HEAD
+            
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
             log.info("Advanced to next phase: {} for plan: {}", nextPhaseStatus.getPhaseId(), treatmentPlanId);
         } else {
             log.info("No next phase found or all phases completed for plan: {}", treatmentPlanId);
         }
     }
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private PhaseStatusResponse convertToPhaseStatusResponse(TreatmentPhaseStatus phaseStatus, TreatmentPhase phase) {
         PhaseStatusResponse response = new PhaseStatusResponse();
         response.setStatusId(phaseStatus.getStatusId());
@@ -900,27 +1367,46 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         response.setPlanId(treatmentPlan.getPlanId());
         // Map doctorId (UUID) sang String cho DTO
         response.setDoctorId(treatmentPlan.getDoctorId() != null ? treatmentPlan.getDoctorId().toString() : null);
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Chuyển đổi JSON string sang List cho FE
         try {
             if (treatmentPlan.getTreatmentSteps() != null && !treatmentPlan.getTreatmentSteps().trim().isEmpty()) {
                 List<TreatmentStepDTO> treatmentSteps = objectMapper.readValue(
+<<<<<<< HEAD
+                    treatmentPlan.getTreatmentSteps(),
+                    new TypeReference<List<TreatmentStepDTO>>() {}
+=======
                         treatmentPlan.getTreatmentSteps(),
                         new TypeReference<List<TreatmentStepDTO>>() {}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
                 );
                 response.setTreatmentSteps(treatmentSteps);
             }
             if (treatmentPlan.getMedicationPlan() != null && !treatmentPlan.getMedicationPlan().trim().isEmpty()) {
                 List<MedicationPlanDTO> medicationPlan = objectMapper.readValue(
+<<<<<<< HEAD
+                    treatmentPlan.getMedicationPlan(),
+                    new TypeReference<List<MedicationPlanDTO>>() {}
+=======
                         treatmentPlan.getMedicationPlan(),
                         new TypeReference<List<MedicationPlanDTO>>() {}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
                 );
                 response.setMedicationPlan(medicationPlan);
             }
             if (treatmentPlan.getMonitoringSchedule() != null && !treatmentPlan.getMonitoringSchedule().trim().isEmpty()) {
                 List<MonitoringScheduleDTO> monitoringSchedule = objectMapper.readValue(
+<<<<<<< HEAD
+                    treatmentPlan.getMonitoringSchedule(),
+                    new TypeReference<List<MonitoringScheduleDTO>>() {}
+=======
                         treatmentPlan.getMonitoringSchedule(),
                         new TypeReference<List<MonitoringScheduleDTO>>() {}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
                 );
                 response.setMonitoringSchedule(monitoringSchedule);
             }
@@ -928,7 +1414,11 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
             log.error("Error converting JSON string to List: {}", e.getMessage());
             // Không throw exception, chỉ log error để không ảnh hưởng đến response
         }
+<<<<<<< HEAD
+        
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return response;
     }
 
@@ -942,8 +1432,13 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
             return;
         }
         List<TreatmentStepDTO> treatmentSteps = objectMapper.readValue(
+<<<<<<< HEAD
+            treatmentStepsJson,
+            new TypeReference<List<TreatmentStepDTO>>() {}
+=======
                 treatmentStepsJson,
                 new TypeReference<List<TreatmentStepDTO>>() {}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         );
         log.info("Parsed {} treatment steps for plan: {} (auto-generate phases)", treatmentSteps.size(), plan.getPlanId());
         UUID firstPhaseId = null;
@@ -1016,4 +1511,8 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                 return UUID.fromString("82cb6fa6-ff24-4f0c-bade-00d5a3fa84f1");
         }
     }
+<<<<<<< HEAD
+} 
+=======
 }
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

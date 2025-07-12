@@ -3,6 +3,8 @@ package com.ferticare.ferticareback.projectmanagementservice.notificationmanagem
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.User;
 import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.entity.TreatmentSchedule;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.entity.TreatmentPlan;
+import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.entity.TreatmentSchedule;
+import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.entity.TreatmentPlan;
 
 public interface EmailService {
     void sendVerificationEmail(User user, String token);
@@ -14,8 +16,9 @@ public interface EmailService {
     void sendOverdueWarning(TreatmentSchedule schedule);
     void sendTreatmentCancelled(TreatmentSchedule schedule);
     void sendScheduleNotification(User patient, User doctor, TreatmentSchedule schedule);
-
+    
     // Bổ sung cho treatment plan
     void sendTreatmentPhasesEmail(User patient, User doctor, TreatmentPlan plan);
     void sendTreatmentCompletionEmail(User patient, User doctor, TreatmentPlan plan);
+    void sendTreatmentCancelled(User patient, User doctor, TreatmentPlan plan, String reason);
 }

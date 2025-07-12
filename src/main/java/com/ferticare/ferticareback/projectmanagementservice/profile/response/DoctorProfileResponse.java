@@ -8,6 +8,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DoctorProfileResponse {
+    // User information (from users table)
     private String avatarUrl;
     private String fullName;
     private String gender;
@@ -15,7 +16,13 @@ public class DoctorProfileResponse {
     private String email;
     private String phone;
     private String address;
+    
+    // Doctor professional information (from profile table)
     private String specialty;
     private String qualification;
     private Integer experienceYears;
+    private Double rating;
+    private Integer caseCount;
+    private String notes;
+    private String status;
 }

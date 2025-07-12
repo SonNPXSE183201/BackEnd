@@ -10,6 +10,7 @@ public class ProfileMapper {
 
     public static DoctorProfileResponse toDoctorResponse(User user, Profile profile) {
         return DoctorProfileResponse.builder()
+                // User information (from users table)
                 .avatarUrl(user.getAvatarUrl())
                 .fullName(user.getFullName())
                 .gender(user.getGender().name())
@@ -17,14 +18,21 @@ public class ProfileMapper {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .address(user.getAddress())
+                
+                // Doctor professional information (from profile table)
                 .specialty(profile.getSpecialty())
                 .qualification(profile.getQualification())
                 .experienceYears(profile.getExperienceYears())
+                .rating(profile.getRating())
+                .caseCount(profile.getCaseCount())
+                .notes(profile.getNotes())
+                .status(profile.getStatus())
                 .build();
     }
 
     public static CustomerProfileResponse toCustomerResponse(User user, Profile profile) {
         return CustomerProfileResponse.builder()
+                // User information (from users table)
                 .avatarUrl(user.getAvatarUrl())
                 .fullName(user.getFullName())
                 .gender(user.getGender().name())
@@ -32,6 +40,8 @@ public class ProfileMapper {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .address(user.getAddress())
+                
+                // Customer personal information (from profile table)
                 .maritalStatus(profile.getMaritalStatus())
                 .healthBackground(profile.getHealthBackground())
                 .build();
@@ -39,6 +49,7 @@ public class ProfileMapper {
 
     public static ManagerAdminProfileResponse toManagerAdminResponse(User user, Profile profile) {
         return ManagerAdminProfileResponse.builder()
+                // User information (from users table)
                 .avatarUrl(user.getAvatarUrl())
                 .fullName(user.getFullName())
                 .gender(user.getGender().name())
@@ -46,6 +57,8 @@ public class ProfileMapper {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .address(user.getAddress())
+                
+                // Work information (from profile table)
                 .assignedDepartment(profile.getAssignedDepartment())
                 .extraPermissions(profile.getExtraPermissions())
                 .build();

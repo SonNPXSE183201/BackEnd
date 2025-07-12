@@ -37,7 +37,14 @@ public interface TreatmentPhaseStatusRepository extends JpaRepository<TreatmentP
     // Kiểm tra có thể tiến tới phase tiếp theo không
     @Query("SELECT COUNT(tps) > 0 FROM TreatmentPhaseStatus tps WHERE tps.treatmentPlanId = :treatmentPlanId AND tps.phaseId = :phaseId AND tps.status = 'Completed'")
     boolean isPhaseCompleted(@Param("treatmentPlanId") UUID treatmentPlanId, @Param("phaseId") UUID phaseId);
+<<<<<<< HEAD
+    
+    // Tìm phase status theo treatment plan và phase
+    Optional<TreatmentPhaseStatus> findByTreatmentPlanIdAndPhaseId(UUID treatmentPlanId, UUID phaseId);
+} 
+=======
 
     // Tìm phase status theo treatment plan và phase
     Optional<TreatmentPhaseStatus> findByTreatmentPlanIdAndPhaseId(UUID treatmentPlanId, UUID phaseId);
 }
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

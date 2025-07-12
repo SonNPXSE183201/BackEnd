@@ -13,7 +13,11 @@ import java.util.UUID;
 public interface TreatmentPlanRepository extends JpaRepository<TreatmentPlan, UUID> {
 
     // ========== BASIC QUERY METHODS ==========
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     // Tìm theo bệnh nhân
     List<TreatmentPlan> findByPatientIdOrderByCreatedDateDesc(UUID patientId);
 
@@ -39,22 +43,42 @@ public interface TreatmentPlanRepository extends JpaRepository<TreatmentPlan, UU
     List<TreatmentPlan> findByTemplateId(UUID templateId);
 
     // ========== BUSINESS QUERY METHODS ==========
+<<<<<<< HEAD
+    
+    // Tìm phác đồ có nguy cơ cao
+    @Query("SELECT tp FROM TreatmentPlan tp " +
+           "WHERE tp.riskFactors IS NOT NULL AND tp.riskFactors != '' " +
+           "AND tp.status IN ('active', 'draft')")
+=======
 
     // Tìm phác đồ có nguy cơ cao
     @Query("SELECT tp FROM TreatmentPlan tp " +
             "WHERE tp.riskFactors IS NOT NULL AND tp.riskFactors != '' " +
             "AND tp.status IN ('active', 'draft')")
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     List<TreatmentPlan> findHighRiskPlans();
 
     // Thống kê theo chu kỳ điều trị (không sử dụng outdated fields)
     @Query("SELECT tp.treatmentCycle, " +
+<<<<<<< HEAD
+           "COUNT(tp) as totalPlans " +
+           "FROM TreatmentPlan tp " +
+           "WHERE tp.treatmentCycle IS NOT NULL AND tp.status = 'completed' " +
+           "GROUP BY tp.treatmentCycle " +
+           "ORDER BY tp.treatmentCycle")
+=======
             "COUNT(tp) as totalPlans " +
             "FROM TreatmentPlan tp " +
             "WHERE tp.treatmentCycle IS NOT NULL AND tp.status = 'completed' " +
             "GROUP BY tp.treatmentCycle " +
             "ORDER BY tp.treatmentCycle")
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     List<Object[]> getTreatmentCycleStatistics();
 
     // Note: Các statistics methods khác đã được loại bỏ cho MVP
     // Note: finalOutcome, progressPercentage, approvedBy fields không còn tồn tại
+<<<<<<< HEAD
+} 
+=======
 }
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

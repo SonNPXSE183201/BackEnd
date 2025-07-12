@@ -87,7 +87,14 @@ public class TreatmentPlan extends BaseEntity {
     private UUID currentPhase;
 
     // Note: progressPercentage được tính toán từ treatment_schedule
+<<<<<<< HEAD
+    // Note: finalOutcome, outcomeDate, outcomeNotes được lưu trong treatment_result  
+    // Note: approval workflow không cần thiết cho MVP
+    // Note: createdBy, updatedBy, createdDate, updatedDate đã có trong BaseEntity
+} 
+=======
     // Note: finalOutcome, outcomeDate, outcomeNotes được lưu trong treatment_result
     // Note: approval workflow không cần thiết cho MVP
     // Note: createdBy, updatedBy, createdDate, updatedDate đã có trong BaseEntity
 }
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

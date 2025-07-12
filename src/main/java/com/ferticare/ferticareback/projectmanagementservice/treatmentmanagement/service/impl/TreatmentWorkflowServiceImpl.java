@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.dto.MedicationPlanDTO;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.dto.MonitoringScheduleDTO;
+import com.ferticare.ferticareback.projectmanagementservice.profile.repository.ProfileRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +47,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     private final TreatmentPlanTemplateRepository treatmentPlanTemplateRepository;
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -65,7 +67,7 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         request.setPatientId(clinicalResult.getPatientId());
         
         // Merge thông tin từ template vào request
-        mergeTemplateIntoRequest(request);
+        mergeTemplateIntoRequest(request, doctorId);
         
         // Tạo treatment plan
         TreatmentPlanResponse treatmentPlan = createTreatmentPlanWithDoctor(request, doctorId);
@@ -114,10 +116,29 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
         
         plan.setStatus("cancelled");
         plan.setUpdatedBy(doctorId);
-        
         treatmentPlanRepository.save(plan);
-        
-        log.info("Treatment plan cancelled successfully: {}", treatmentPlanId);
+
+        // Cập nhật trạng thái tất cả các phase thành Cancelled
+        List<TreatmentPhaseStatus> phaseStatuses = treatmentPhaseStatusRepository.findByTreatmentPlanIdOrderByPhaseId(treatmentPlanId);
+        for (TreatmentPhaseStatus phaseStatus : phaseStatuses) {
+            phaseStatus.setStatus("Cancelled");
+            treatmentPhaseStatusRepository.save(phaseStatus);
+        }
+
+        // Gửi mail hủy lịch cho bệnh nhân với template màu hồng, có thông tin liên hệ
+        try {
+            Optional<User> patientOpt = userRepository.findById(plan.getPatientId());
+            Optional<User> doctorOpt = plan.getDoctorId() != null ? userRepository.findById(plan.getDoctorId()) : Optional.empty();
+            if (patientOpt.isPresent()) {
+                User patient = patientOpt.get();
+                User doctor = doctorOpt.orElse(null);
+                emailService.sendTreatmentCancelled(patient, doctor, plan, reason);
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi mail hủy kế hoạch điều trị: {}", e.getMessage());
+        }
+
+        log.info("Treatment plan and all phases cancelled successfully: {}", treatmentPlanId);
     }
 
     @Override
@@ -179,6 +200,19 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public TreatmentPlanResponse createTreatmentPlanWithDoctor(TreatmentPlanRequest request, String doctorId) {
         log.info("Creating treatment plan for patient: {} by doctor: {}", request.getPatientId(), doctorId);
+
+        // Kiểm tra quyền bác sĩ trước khi tạo treatment plan
+        String doctorSpecialty = getDoctorSpecialty(doctorId);
+        log.info("Doctor {} with specialty {} requesting to create treatment plan for type: {}", 
+                doctorId, doctorSpecialty, request.getTreatmentType());
+        
+        // Kiểm tra bác sĩ có quyền tạo treatment plan cho loại này không
+        if (!canDoctorAccessTemplate(doctorSpecialty, request.getTreatmentType())) {
+            throw new IllegalStateException(
+                String.format("Bác sĩ có specialty '%s' không được phép tạo treatment plan cho loại '%s'. " +
+                            "Chỉ bác sĩ IUI mới được tạo IUI, bác sĩ IVF mới được tạo IVF.", 
+                            doctorSpecialty, request.getTreatmentType()));
+        }
 
         // Kiểm tra 1 bệnh nhân chỉ có 1 plan active
         List<TreatmentPlan> activePlans = treatmentPlanRepository.findByStatusAndPatientId("active", request.getPatientId());
@@ -628,10 +662,23 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     }
 
     /**
-     * Merge thông tin từ template vào request
+     * Merge thông tin từ template vào request - có kiểm tra quyền bác sĩ
      */
-    private void mergeTemplateIntoRequest(TreatmentPlanRequest request) {
+    private void mergeTemplateIntoRequest(TreatmentPlanRequest request, String doctorId) {
         try {
+            // Kiểm tra quyền bác sĩ trước khi merge template
+            String doctorSpecialty = getDoctorSpecialty(doctorId);
+            log.info("Doctor {} with specialty {} requesting template for treatment type: {}", 
+                    doctorId, doctorSpecialty, request.getTreatmentType());
+            
+            // Kiểm tra bác sĩ có quyền tạo treatment plan cho loại này không
+            if (!canDoctorAccessTemplate(doctorSpecialty, request.getTreatmentType())) {
+                throw new IllegalStateException(
+                    String.format("Bác sĩ có specialty '%s' không được phép tạo treatment plan cho loại '%s'. " +
+                                "Chỉ bác sĩ IUI mới được tạo IUI, bác sĩ IVF mới được tạo IVF.", 
+                                doctorSpecialty, request.getTreatmentType()));
+            }
+            
             TreatmentPlanTemplate template = treatmentPlanTemplateRepository
                     .findByTreatmentTypeIgnoreCaseAndIsActiveTrue(request.getTreatmentType());
             if (template != null) {
@@ -678,15 +725,63 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
                 }
                 // Set status = 'active' khi merge template
                 request.setStatus("active");
-                log.info("Merged {} template '{}' into treatment plan request", 
-                        template.getTreatmentType(), template.getName());
+                log.info("Merged {} template '{}' into treatment plan request for doctor with specialty: {}", 
+                        template.getTreatmentType(), template.getName(), doctorSpecialty);
             } else {
                 log.warn("No active template found for treatment type: {}, using fallback", request.getTreatmentType());
                 request.setTemplateId(UUID.fromString("B193D4C1-D9EE-41B4-A417-4121075BB91E"));
             }
         } catch (Exception e) {
             log.error("Error merging template into request: {}", e.getMessage());
-            request.setTemplateId(UUID.fromString("B193D4C1-D9EE-41B4-A417-4121075BB91E"));
+            throw new RuntimeException("Không thể tạo treatment plan: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Lấy specialty của bác sĩ từ profile
+     */
+    private String getDoctorSpecialty(String doctorId) {
+        try {
+            UUID doctorUuid = UUID.fromString(doctorId);
+            User doctor = userRepository.findById(doctorUuid)
+                    .orElseThrow(() -> new RuntimeException("Doctor not found"));
+            
+            return profileRepository.findByUser_Id(doctorUuid)
+                    .map(profile -> profile.getSpecialty())
+                    .orElse("UNKNOWN");
+        } catch (Exception e) {
+            log.error("Error getting doctor specialty: {}", e.getMessage());
+            return "UNKNOWN";
+        }
+    }
+    
+    /**
+     * Kiểm tra bác sĩ có quyền truy cập template không dựa trên specialty
+     */
+    private boolean canDoctorAccessTemplate(String doctorSpecialty, String treatmentType) {
+        // Logic phân quyền:
+        // - Bác sĩ IUI chỉ được truy cập template IUI
+        // - Bác sĩ IVF chỉ được truy cập template IVF
+        // - Bác sĩ có specialty khác hoặc UNKNOWN không được truy cập
+        
+        if (doctorSpecialty == null || doctorSpecialty.equals("UNKNOWN")) {
+            return false;
+        }
+        
+        String normalizedSpecialty = doctorSpecialty.toUpperCase().trim();
+        String normalizedTreatmentType = treatmentType.toUpperCase().trim();
+        
+        // Mapping specialty với treatment type
+        switch (normalizedSpecialty) {
+            case "IUI":
+                return "IUI".equals(normalizedTreatmentType);
+            case "IVF":
+                return "IVF".equals(normalizedTreatmentType);
+            case "ICSI":
+                return "ICSI".equals(normalizedTreatmentType);
+            default:
+                // Nếu specialty không khớp với treatment type nào, không cho phép
+                return false;
         }
     }
     

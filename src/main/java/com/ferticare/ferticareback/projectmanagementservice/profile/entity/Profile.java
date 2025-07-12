@@ -26,8 +26,6 @@ public class Profile {
     private String qualification;
     @Column(name = "experience_years")
     private Integer experienceYears;
-    @Column(name = "work_schedule")
-    private String workSchedule;
     private Double rating;
     @Column(name = "case_count")
     private Integer caseCount;

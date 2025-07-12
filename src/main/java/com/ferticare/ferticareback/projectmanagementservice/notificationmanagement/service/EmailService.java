@@ -18,4 +18,5 @@ public interface EmailService {
     // Bổ sung cho treatment plan
     void sendTreatmentPhasesEmail(User patient, User doctor, TreatmentPlan plan);
     void sendTreatmentCompletionEmail(User patient, User doctor, TreatmentPlan plan);
+    void sendTreatmentCancelled(User patient, User doctor, TreatmentPlan plan, String reason);
 }

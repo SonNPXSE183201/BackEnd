@@ -178,8 +178,14 @@ public class TreatmentWorkflowController {
     @Operation(summary = "Lấy phase hiện tại đang thực hiện", 
                description = "Trả về phase đang 'In Progress' hoặc phase đầu tiên 'Pending'")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<PhaseStatusResponse> getCurrentPhase(@PathVariable UUID treatmentPlanId) {
+    public ResponseEntity<?> getCurrentPhase(@PathVariable UUID treatmentPlanId) {
         PhaseStatusResponse currentPhase = treatmentWorkflowService.getCurrentPhase(treatmentPlanId);
+        if (currentPhase == null) {
+            return ResponseEntity.ok(new com.ferticare.ferticareback.common.dto.MessageDTO(
+                "NO_CURRENT_PHASE",
+                "Không có phase hiện tại"
+            ));
+        }
         return ResponseEntity.ok(currentPhase);
     }
 } 

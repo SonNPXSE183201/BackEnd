@@ -23,7 +23,6 @@ public class ProfileMapper {
                 .specialty(profile.getSpecialty())
                 .qualification(profile.getQualification())
                 .experienceYears(profile.getExperienceYears())
-                .workSchedule(profile.getWorkSchedule())
                 .rating(profile.getRating())
                 .caseCount(profile.getCaseCount())
                 .notes(profile.getNotes())

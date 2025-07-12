@@ -16,6 +16,8 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -33,18 +35,22 @@ public abstract class BaseEntity implements Serializable {
 
     @CreatedBy
     @Column(name = "created_by", updatable = false)
+    @Column(name = "created_by", updatable = false)
     private String createdBy;
 
     @LastModifiedBy
+    @Column(name = "updated_by")
     @Column(name = "updated_by")
     private String updatedBy;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", updatable = false)
     @JsonFormat(pattern = DataPatternConstant.TIMESTAMP_FORMAT)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
     @Column(name = "updated_at")
     @JsonFormat(pattern = DataPatternConstant.TIMESTAMP_FORMAT)
     private LocalDateTime updatedDate;

@@ -8,19 +8,19 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public interface ServiceRequestService {
-    
+
     ResponseEntity<?> handleRequest(UUID userId, ServiceRequestDTO dto);
-    
+
     ResponseEntity<?> getDoctorSchedule(UUID doctorId);
-    
+
     ResponseEntity<?> getAvailableDoctorsByService(UUID serviceId);
-    
+
     ResponseEntity<?> getDoctorAvailableTimes(UUID doctorId, LocalDate date);
-    
+
     ResponseEntity<?> handleRequestWithAuth(ServiceRequestDTO dto, HttpServletRequest request);
-    
+
     ResponseEntity<?> getAvailableDates(UUID doctorId);
-    
+
     ResponseEntity<?> getDoctorAppointments(UUID doctorId, LocalDate date);
     
     // Doctor's patients management

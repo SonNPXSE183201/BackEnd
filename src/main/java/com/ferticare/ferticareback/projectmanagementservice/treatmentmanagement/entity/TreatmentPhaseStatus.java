@@ -40,4 +40,8 @@ public class TreatmentPhaseStatus extends BaseEntity {
 
     @Column(name = "notes", columnDefinition = "nvarchar(max)")
     private String notes;
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

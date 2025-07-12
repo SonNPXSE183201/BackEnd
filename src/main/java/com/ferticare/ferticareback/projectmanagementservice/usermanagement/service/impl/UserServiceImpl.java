@@ -233,16 +233,16 @@ public class UserServiceImpl implements UserService {
     public List<DoctorScheduleDTO> getDoctorsWithSchedule() {
         // Lấy tất cả bác sĩ
         List<User> doctors = userRepository.findAllDoctors();
-        
+
         return doctors.stream()
                 .map(doctor -> {
                     // Lấy thông tin từ profile
                     Profile profile = profileRepository.findByUser_Id(doctor.getId()).orElse(null);
                     String specialty = profile != null ? profile.getSpecialty() : "Không xác định";
-                    
+
                     // Lấy lịch làm việc từ bảng DoctorWorkSchedule mới
                     List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctor.getId());
-                    
+
                     List<DoctorScheduleDTO.WorkSchedule> workSchedules = schedules.stream()
                             .map(schedule -> new DoctorScheduleDTO.WorkSchedule(
                                     schedule.getDayOfWeek(),
@@ -252,7 +252,7 @@ public class UserServiceImpl implements UserService {
                                     schedule.getRoom()
                             ))
                             .toList();
-                    
+
                     return new DoctorScheduleDTO(
                             doctor.getId(),
                             doctor.getFullName(),
@@ -264,7 +264,7 @@ public class UserServiceImpl implements UserService {
                 })
                 .toList();
     }
-    
+
     private String getDayName(Integer dayOfWeek) {
         return switch (dayOfWeek) {
             case 1 -> "Thứ 2";

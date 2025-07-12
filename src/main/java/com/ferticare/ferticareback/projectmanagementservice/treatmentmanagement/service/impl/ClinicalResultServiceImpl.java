@@ -28,7 +28,11 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
 
     // Valid result types theo database CHECK constraint từ file SQL
     private final Set<String> VALID_RESULT_TYPES = Set.of(
+<<<<<<< HEAD
         "Other", "Text", "Image", "Lab"  // BỔ SUNG: Thêm "Image" và "Lab" theo database
+=======
+            "Other", "Text", "Image", "Lab"  // BỔ SUNG: Thêm "Image" và "Lab" theo database
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     );
 
     private boolean isValidResultType(String resultType) {
@@ -152,7 +156,11 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
     @Override
     public List<ClinicalResultResponse> getClinicalResultsByPatient(UUID patientId) {
         log.info("Getting clinical results for patient: {}", patientId);
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<ClinicalResult> results = clinicalResultRepository.findByPatientIdOrderByCreatedDateDesc(patientId);
         return results.stream()
                 .map(this::convertToResponse)
@@ -162,7 +170,11 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
     @Override
     public List<ClinicalResultResponse> getClinicalResultsByDoctor(String doctorId) {
         log.info("Getting clinical results for doctor: {}", doctorId);
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<ClinicalResult> results = clinicalResultRepository.findByDoctorIdOrderByCreatedDateDesc(UUID.fromString(doctorId));
         return results.stream()
                 .map(this::convertToResponse)
@@ -172,7 +184,11 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
     @Override
     public List<ClinicalResultResponse> getCompletedClinicalResults() {
         log.info("Getting all completed clinical results");
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<ClinicalResult> results = clinicalResultRepository.findByIsCompleted(true);
         return results.stream()
                 .map(this::convertToResponse)
@@ -182,7 +198,11 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
     @Override
     public List<ClinicalResultResponse> getClinicalResultsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         log.info("Getting clinical results between {} and {}", startDate, endDate);
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<ClinicalResult> results = clinicalResultRepository.findByExaminationDateBetween(startDate, endDate);
         return results.stream()
                 .map(this::convertToResponse)
@@ -192,20 +212,34 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
     @Override
     public ClinicalResultResponse getLatestCompletedResultByPatient(UUID patientId) {
         log.info("Getting latest completed clinical result for patient: {}", patientId);
+<<<<<<< HEAD
         
         ClinicalResult result = clinicalResultRepository.findByPatientIdAndIsCompletedTrue(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("No completed clinical result found for patient: " + patientId));
         
+=======
+
+        ClinicalResult result = clinicalResultRepository.findByPatientIdAndIsCompletedTrue(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("No completed clinical result found for patient: " + patientId));
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return convertToResponse(result);
     }
 
     @Override
     public Map<String, Object> getDiagnosisStatistics() {
         log.info("Getting diagnosis statistics");
+<<<<<<< HEAD
         
         List<Object[]> statistics = clinicalResultRepository.getDiagnosisStatistics();
         Map<String, Object> result = new HashMap<>();
         
+=======
+
+        List<Object[]> statistics = clinicalResultRepository.getDiagnosisStatistics();
+        Map<String, Object> result = new HashMap<>();
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<Map<String, Object>> diagnosisData = statistics.stream()
                 .map(row -> {
                     Map<String, Object> data = new HashMap<>();
@@ -215,20 +249,34 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
                     return data;
                 })
                 .collect(Collectors.toList());
+<<<<<<< HEAD
         
         result.put("diagnosisStatistics", diagnosisData);
         result.put("totalDiagnoses", diagnosisData.size());
         
+=======
+
+        result.put("diagnosisStatistics", diagnosisData);
+        result.put("totalDiagnoses", diagnosisData.size());
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return result;
     }
 
     @Override
     public Map<String, Object> getSeverityStatistics() {
         log.info("Getting severity statistics");
+<<<<<<< HEAD
         
         List<Object[]> statistics = clinicalResultRepository.getSeverityStatistics();
         Map<String, Object> result = new HashMap<>();
         
+=======
+
+        List<Object[]> statistics = clinicalResultRepository.getSeverityStatistics();
+        Map<String, Object> result = new HashMap<>();
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<Map<String, Object>> severityData = statistics.stream()
                 .map(row -> {
                     Map<String, Object> data = new HashMap<>();
@@ -237,20 +285,34 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
                     return data;
                 })
                 .collect(Collectors.toList());
+<<<<<<< HEAD
         
         result.put("severityStatistics", severityData);
         result.put("totalSeverityLevels", severityData.size());
         
+=======
+
+        result.put("severityStatistics", severityData);
+        result.put("totalSeverityLevels", severityData.size());
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return result;
     }
 
     @Override
     public Map<String, Object> getDoctorStatistics() {
         log.info("Getting doctor statistics");
+<<<<<<< HEAD
         
         List<Object[]> statistics = clinicalResultRepository.getDoctorStatistics();
         Map<String, Object> result = new HashMap<>();
         
+=======
+
+        List<Object[]> statistics = clinicalResultRepository.getDoctorStatistics();
+        Map<String, Object> result = new HashMap<>();
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<Map<String, Object>> doctorData = statistics.stream()
                 .map(row -> {
                     Map<String, Object> data = new HashMap<>();
@@ -260,20 +322,34 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
                     return data;
                 })
                 .collect(Collectors.toList());
+<<<<<<< HEAD
         
         result.put("doctorStatistics", doctorData);
         result.put("totalDoctors", doctorData.size());
         
+=======
+
+        result.put("doctorStatistics", doctorData);
+        result.put("totalDoctors", doctorData.size());
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return result;
     }
 
     @Override
     public Map<String, Object> getDailyStatistics(LocalDateTime startDate, LocalDateTime endDate) {
         log.info("Getting daily statistics between {} and {}", startDate, endDate);
+<<<<<<< HEAD
         
         List<Object[]> statistics = clinicalResultRepository.getDailyStatistics(startDate, endDate);
         Map<String, Object> result = new HashMap<>();
         
+=======
+
+        List<Object[]> statistics = clinicalResultRepository.getDailyStatistics(startDate, endDate);
+        Map<String, Object> result = new HashMap<>();
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<Map<String, Object>> dailyData = statistics.stream()
                 .map(row -> {
                     Map<String, Object> data = new HashMap<>();
@@ -282,22 +358,37 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
                     return data;
                 })
                 .collect(Collectors.toList());
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         result.put("dailyStatistics", dailyData);
         result.put("totalDays", dailyData.size());
         result.put("startDate", startDate);
         result.put("endDate", endDate);
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return result;
     }
 
     @Override
     public Map<String, Object> getAgeGroupStatistics() {
         log.info("Getting age group statistics");
+<<<<<<< HEAD
         
         List<Object[]> statistics = clinicalResultRepository.getAgeGroupStatistics();
         Map<String, Object> result = new HashMap<>();
         
+=======
+
+        List<Object[]> statistics = clinicalResultRepository.getAgeGroupStatistics();
+        Map<String, Object> result = new HashMap<>();
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<Map<String, Object>> ageData = statistics.stream()
                 .map(row -> {
                     Map<String, Object> data = new HashMap<>();
@@ -306,20 +397,34 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
                     return data;
                 })
                 .collect(Collectors.toList());
+<<<<<<< HEAD
         
         result.put("ageGroupStatistics", ageData);
         result.put("totalAgeGroups", ageData.size());
         
+=======
+
+        result.put("ageGroupStatistics", ageData);
+        result.put("totalAgeGroups", ageData.size());
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return result;
     }
 
     @Override
     public Map<String, Object> getResultTypeStatistics() {
         log.info("Getting result type statistics");
+<<<<<<< HEAD
         
         List<Object[]> statistics = clinicalResultRepository.getResultTypeStatistics();
         Map<String, Object> result = new HashMap<>();
         
+=======
+
+        List<Object[]> statistics = clinicalResultRepository.getResultTypeStatistics();
+        Map<String, Object> result = new HashMap<>();
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         List<Map<String, Object>> typeData = statistics.stream()
                 .map(row -> {
                     Map<String, Object> data = new HashMap<>();
@@ -328,22 +433,37 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
                     return data;
                 })
                 .collect(Collectors.toList());
+<<<<<<< HEAD
         
         result.put("resultTypeStatistics", typeData);
         result.put("totalResultTypes", typeData.size());
         
+=======
+
+        result.put("resultTypeStatistics", typeData);
+        result.put("totalResultTypes", typeData.size());
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return result;
     }
 
     @Override
     public Map<String, Object> getComplicationStatistics() {
         log.info("Getting complication statistics");
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         Map<String, Object> result = new HashMap<>();
         result.put("message", "Complications tracking not implemented yet");
         result.put("totalResultsWithComplications", 0);
         result.put("complicationDetails", new ArrayList<>());
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return result;
     }
 
@@ -384,7 +504,11 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
     public ClinicalResultResponse getClinicalResultByIdWithAccessCheck(UUID resultId, String userId, String role) {
         ClinicalResult clinicalResult = clinicalResultRepository.findById(resultId)
                 .orElseThrow(() -> new ResourceNotFoundException("Clinical result not found with ID: " + resultId));
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // ✅ CUSTOMER chỉ xem được ClinicalResult của chính họ
         if (role.contains("CUSTOMER")) {
             if (!clinicalResult.getPatientId().equals(UUID.fromString(userId))) {
@@ -401,7 +525,11 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
         else if (!role.contains("MANAGER") && !role.contains("ADMIN")) {
             throw new AccessDeniedException("Bạn không có quyền truy cập kết quả khám bệnh.");
         }
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         return convertToResponse(clinicalResult);
     }
 
@@ -435,4 +563,8 @@ public class ClinicalResultServiceImpl implements ClinicalResultService {
         BeanUtils.copyProperties(clinicalResult, response);
         return response;
     }
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

@@ -85,4 +85,8 @@ public class TreatmentPlanTemplate {
 
     @Column(name = "is_active")
     private Boolean isActive = true; // Template có đang hoạt động không
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

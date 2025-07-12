@@ -20,7 +20,11 @@ public class TreatmentScheduleReminderService {
     @Scheduled(fixedDelay = 600000) // 10 phút
     public void sendRemindersForUpcomingSchedules() {
         LocalDateTime now = LocalDateTime.now();
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Nhắc nhở 24h trước (trong khoảng 24h-23h30)
         LocalDateTime start24h = now.plusHours(23).plusMinutes(30);
         LocalDateTime end24h = now.plusHours(24);
@@ -28,7 +32,11 @@ public class TreatmentScheduleReminderService {
         for (TreatmentSchedule schedule : schedules24h) {
             emailService.sendAppointmentReminder(schedule, 24);
         }
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Nhắc nhở 2h trước (trong khoảng 2h-1h50)
         LocalDateTime start2h = now.plusHours(1).plusMinutes(50);
         LocalDateTime end2h = now.plusHours(2);
@@ -42,12 +50,20 @@ public class TreatmentScheduleReminderService {
     @Scheduled(fixedDelay = 600000) // 10 phút
     public void sendOverdueWarnings() {
         LocalDateTime now = LocalDateTime.now();
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Cảnh báo quá hạn 30-40 phút
         LocalDateTime startOverdue = now.minusMinutes(40);
         LocalDateTime endOverdue = now.minusMinutes(30);
         List<TreatmentSchedule> overdueSchedules = treatmentScheduleRepository.findOverdueSchedules(startOverdue, endOverdue);
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         for (TreatmentSchedule schedule : overdueSchedules) {
             emailService.sendOverdueWarning(schedule);
         }
@@ -58,17 +74,31 @@ public class TreatmentScheduleReminderService {
     public void cancelOverduePlans() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime cutoffTime = now.minusDays(1);
+<<<<<<< HEAD
         
         List<TreatmentSchedule> schedulesToCancel = treatmentScheduleRepository.findSchedulesToCancel(cutoffTime);
         
+=======
+
+        List<TreatmentSchedule> schedulesToCancel = treatmentScheduleRepository.findSchedulesToCancel(cutoffTime);
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         for (TreatmentSchedule schedule : schedulesToCancel) {
             // Hủy plan
             schedule.setStatus("cancelled");
             // BaseEntity sẽ tự động xử lý updatedAt khi save
             treatmentScheduleRepository.save(schedule);
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
             // Gửi email thông báo hủy
             emailService.sendTreatmentCancelled(schedule);
         }
     }
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

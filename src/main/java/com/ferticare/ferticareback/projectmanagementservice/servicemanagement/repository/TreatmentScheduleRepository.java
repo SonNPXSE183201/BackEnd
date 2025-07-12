@@ -15,8 +15,13 @@ public interface TreatmentScheduleRepository extends JpaRepository<TreatmentSche
     // Lấy các slot đã book của bác sĩ trong ngày
     @Query("SELECT ts.scheduledDate FROM TreatmentSchedule ts WHERE ts.doctorId = :doctorId AND ts.scheduledDate BETWEEN :startOfDay AND :endOfDay")
     List<LocalDateTime> findBookedTimesByDoctorIdAndDateRange(@Param("doctorId") UUID doctorId,
+<<<<<<< HEAD
                                                              @Param("startOfDay") LocalDateTime startOfDay,
                                                              @Param("endOfDay") LocalDateTime endOfDay);
+=======
+                                                              @Param("startOfDay") LocalDateTime startOfDay,
+                                                              @Param("endOfDay") LocalDateTime endOfDay);
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
 
     // Lấy các schedule cần nhắc nhở 24h trước (trong khoảng 24h-23h30)
     @Query("SELECT ts FROM TreatmentSchedule ts WHERE ts.status = 'scheduled' AND ts.scheduledDate BETWEEN :startTime AND :endTime")
@@ -36,4 +41,8 @@ public interface TreatmentScheduleRepository extends JpaRepository<TreatmentSche
     // Lấy các schedule quá hạn 1 ngày để hủy
     @Query("SELECT ts FROM TreatmentSchedule ts WHERE ts.status = 'scheduled' AND ts.scheduledDate < :cutoffTime")
     List<TreatmentSchedule> findSchedulesToCancel(@Param("cutoffTime") LocalDateTime cutoffTime);
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

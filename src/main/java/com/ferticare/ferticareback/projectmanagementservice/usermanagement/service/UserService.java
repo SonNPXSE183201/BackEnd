@@ -20,16 +20,16 @@ public interface UserService {
     Optional<User> findByPhone(String phone);
     // Hàm login
     Optional<User> login(String email, String rawPassword);
-    
+
     // Authentication service methods
     LoginResponse authenticateUser(LoginRequest loginRequest);
-    
+
     // User registration service methods
     UserResponse registerUser(UserRegisterRequest userRegisterRequest);
-    
+
     // Admin user creation service methods
     UserResponse createUserByAdmin(UserCreateByAdminRequest adminRequest);
-    
+
     // Doctor service methods
     List<DoctorScheduleDTO> getDoctorsWithSchedule();
     

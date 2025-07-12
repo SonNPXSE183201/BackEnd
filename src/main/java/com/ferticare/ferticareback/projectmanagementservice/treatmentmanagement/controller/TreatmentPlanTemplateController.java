@@ -1,5 +1,6 @@
 package com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.controller;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.dto.TreatmentStepDTO;
@@ -23,6 +24,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+=======
+import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.entity.TreatmentPlanTemplate;
+import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.repository.TreatmentPlanTemplateRepository;
+import com.ferticare.ferticareback.projectmanagementservice.configuration.security.annotation.DoctorOnly;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
 
 @RestController
 @RequestMapping("/api/treatment-plan-templates")
@@ -31,6 +43,7 @@ import java.util.stream.Collectors;
 public class TreatmentPlanTemplateController {
 
     private final TreatmentPlanTemplateRepository templateRepository;
+<<<<<<< HEAD
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final JwtUtil jwtUtil;
@@ -84,6 +97,35 @@ public class TreatmentPlanTemplateController {
         TreatmentPlanTemplate template = templateRepository.findByTreatmentTypeIgnoreCaseAndIsActiveTrue(treatmentType);
         if (template != null) {
             return ResponseEntity.ok(convertToResponse(template));
+=======
+
+    /**
+     * Lấy danh sách tất cả template đang hoạt động
+     */
+    @GetMapping
+    @DoctorOnly
+    public ResponseEntity<List<TreatmentPlanTemplate>> getAllActiveTemplates() {
+        log.info("Getting all active treatment plan templates");
+
+        List<TreatmentPlanTemplate> templates = templateRepository.findByIsActiveTrueOrderByTreatmentType();
+
+        return ResponseEntity.ok(templates);
+    }
+
+    /**
+     * Lấy template theo treatment type (IUI, IVF)
+     */
+    @GetMapping("/type/{treatmentType}")
+    @DoctorOnly
+    public ResponseEntity<TreatmentPlanTemplate> getTemplateByType(@PathVariable String treatmentType) {
+        log.info("Getting template for treatment type: {}", treatmentType);
+
+        TreatmentPlanTemplate template = templateRepository
+                .findByTreatmentTypeIgnoreCaseAndIsActiveTrue(treatmentType);
+
+        if (template != null) {
+            return ResponseEntity.ok(template);
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -94,6 +136,7 @@ public class TreatmentPlanTemplateController {
      */
     @GetMapping("/preview/{treatmentType}")
     @DoctorOnly
+<<<<<<< HEAD
     public ResponseEntity<TreatmentPlanTemplateResponse> previewTemplate(
             @PathVariable String treatmentType, 
             HttpServletRequest request) {
@@ -110,11 +153,23 @@ public class TreatmentPlanTemplateController {
         if (template != null) {
             log.info("Found template: {} for type: {}", template.getName(), treatmentType);
             return ResponseEntity.ok(convertToResponse(template));
+=======
+    public ResponseEntity<TreatmentPlanTemplate> previewTemplate(@PathVariable String treatmentType) {
+        log.info("Previewing template for treatment type: {}", treatmentType);
+
+        TreatmentPlanTemplate template = templateRepository
+                .findByTreatmentTypeIgnoreCaseAndIsActiveTrue(treatmentType);
+
+        if (template != null) {
+            log.info("Found template: {} for type: {}", template.getName(), treatmentType);
+            return ResponseEntity.ok(template);
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         } else {
             log.warn("No template found for treatment type: {}", treatmentType);
             return ResponseEntity.notFound().build();
         }
     }
+<<<<<<< HEAD
 
     /**
      * Lấy thông tin bác sĩ hiện tại từ JWT token
@@ -222,3 +277,6 @@ public class TreatmentPlanTemplateController {
         }
     }
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

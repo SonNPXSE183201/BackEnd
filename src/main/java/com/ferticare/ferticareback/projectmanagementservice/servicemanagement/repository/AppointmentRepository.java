@@ -25,7 +25,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
     // ✅ Trả về danh sách bác sĩ bận ở thời điểm đó
     @Query("SELECT a.doctorId FROM Appointment a WHERE a.appointmentTime = :time")
     List<UUID> findDoctorIdsBusyAt(@Param("time") LocalDateTime time);
-    
+
     // ✅ Lấy danh sách thời gian đã có lịch hẹn của bác sĩ trong một khoảng thời gian
     @Query("SELECT a.appointmentTime FROM Appointment a WHERE a.doctorId = :doctorId AND a.appointmentTime BETWEEN :startTime AND :endTime")
     List<LocalDateTime> findAppointmentTimesByDoctorIdAndDateRange(

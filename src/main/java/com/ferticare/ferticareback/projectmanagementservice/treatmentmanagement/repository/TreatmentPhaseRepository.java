@@ -41,4 +41,8 @@ public interface TreatmentPhaseRepository extends JpaRepository<TreatmentPhase, 
     // Tìm phases có duration lớn hơn threshold
     @Query("SELECT tp FROM TreatmentPhase tp WHERE tp.expectedDuration > :minDuration")
     List<TreatmentPhase> findLongDurationPhases(@Param("minDuration") Integer minDuration);
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

@@ -38,9 +38,15 @@ public class TreatmentScheduleController {
         schedule.setGracePeriodDays(request.getGracePeriodDays());
         schedule.setStatus("scheduled");
         // BaseEntity sẽ tự động xử lý createdAt, updatedAt, createdBy, updatedBy
+<<<<<<< HEAD
         
         TreatmentSchedule saved = treatmentScheduleRepository.save(schedule);
         
+=======
+
+        TreatmentSchedule saved = treatmentScheduleRepository.save(schedule);
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         // Gửi email thông báo lịch hẹn cho phase
         try {
             sendScheduleNotificationEmail(saved);
@@ -49,15 +55,23 @@ public class TreatmentScheduleController {
             log.error("Error sending email notification for schedule: {}", e.getMessage());
             // Không throw exception để không ảnh hưởng đến việc tạo schedule
         }
+<<<<<<< HEAD
         
         return ResponseEntity.ok(saved);
     }
     
+=======
+
+        return ResponseEntity.ok(saved);
+    }
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
     private void sendScheduleNotificationEmail(TreatmentSchedule schedule) {
         try {
             // Lấy thông tin bệnh nhân và bác sĩ
             User patient = userRepository.findById(schedule.getPatientId())
                     .orElseThrow(() -> new RuntimeException("Patient not found: " + schedule.getPatientId()));
+<<<<<<< HEAD
             
             User doctor = userRepository.findById(schedule.getDoctorId())
                     .orElseThrow(() -> new RuntimeException("Doctor not found: " + schedule.getDoctorId()));
@@ -65,9 +79,22 @@ public class TreatmentScheduleController {
             // Gửi email thông báo lịch hẹn
             emailService.sendScheduleNotification(patient, doctor, schedule);
             
+=======
+
+            User doctor = userRepository.findById(schedule.getDoctorId())
+                    .orElseThrow(() -> new RuntimeException("Doctor not found: " + schedule.getDoctorId()));
+
+            // Gửi email thông báo lịch hẹn
+            emailService.sendScheduleNotification(patient, doctor, schedule);
+
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43
         } catch (Exception e) {
             log.error("Error in sendScheduleNotificationEmail: {}", e.getMessage());
             throw e;
         }
     }
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

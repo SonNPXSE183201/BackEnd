@@ -36,8 +36,8 @@ public class UserController {
             // Log lỗi chi tiết để debug
             ex.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of(
-                "message", "Đăng ký thất bại: " + ex.getMessage(),
-                "error", ex.getClass().getSimpleName()
+                    "message", "Đăng ký thất bại: " + ex.getMessage(),
+                    "error", ex.getClass().getSimpleName()
             ));
         }
     }

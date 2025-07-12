@@ -18,4 +18,8 @@ public class TreatmentScheduleRequest {
     private String treatmentType;
     private LocalDateTime deadline;
     private Integer gracePeriodDays;
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> 1e5b47cf8f4df1302b4cc5c648ae9c9a3e6a4f43

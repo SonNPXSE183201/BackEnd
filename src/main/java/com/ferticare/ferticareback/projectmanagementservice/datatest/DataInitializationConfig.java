@@ -99,13 +99,6 @@ public class DataInitializationConfig {
                         .experienceYears(12)
                         .rating(4.9)
                         .caseCount(150)
-                        .workSchedule("""
-                            {
-                              "mon": {"start": "08:00", "end": "12:00"},
-                              "wed": {"start": "13:00", "end": "17:00"},
-                              "fri": {"start": "08:00", "end": "12:00"}
-                            }
-                        """)
                         .notes("Expert in IVF and IUI procedures")
                         .build();
                 profileRepository.save(doctorProfile);

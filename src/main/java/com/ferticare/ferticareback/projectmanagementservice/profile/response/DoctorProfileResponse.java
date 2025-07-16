@@ -21,7 +21,6 @@ public class DoctorProfileResponse {
     private String specialty;
     private String qualification;
     private Integer experienceYears;
-    private String workSchedule;
     private Double rating;
     private Integer caseCount;
     private String notes;

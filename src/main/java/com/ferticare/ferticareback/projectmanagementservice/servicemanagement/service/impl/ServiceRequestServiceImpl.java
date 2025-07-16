@@ -72,11 +72,15 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
 
         System.out.println(">>> Tên chuyên môn từ dịch vụ: " + specialty);
 
-        // Log danh sách bác sĩ theo chuyên môn (đã active)
-        List<Object[]> doctorRows = userRepository.findDoctorWithScheduleBySpecialty(specialty);
-        System.out.println(">>> Tổng số bác sĩ có chuyên môn " + specialty + ": " + doctorRows.size());
-        for (Object[] row : doctorRows) {
-            System.out.println("Doctor ID: " + row[0] + ", Name: " + row[1] + ", Schedule: " + row[2]);
+        // Lấy danh sách bác sĩ theo chuyên môn (đã active)
+        List<User> doctors = userRepository.findFirstAvailableDoctorExcluding(
+            List.of(UUID.randomUUID()), // Không loại trừ ai
+            specialty,
+            PageRequest.of(0, 100) // Lấy tối đa 100 bác sĩ
+        );
+        System.out.println(">>> Tổng số bác sĩ có chuyên môn " + specialty + ": " + doctors.size());
+        for (User doctor : doctors) {
+            System.out.println("Doctor ID: " + doctor.getId() + ", Name: " + doctor.getFullName());
         }
 
         LocalDateTime preferredTime = dto.getAppointmentTime();
@@ -422,22 +426,23 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
             }
             
             // Lấy tất cả bác sĩ có chuyên ngành này và đang active
-            List<Object[]> doctorRows = userRepository.findDoctorWithScheduleBySpecialty(specialty);
+            List<User> doctors = userRepository.findFirstAvailableDoctorExcluding(
+                List.of(UUID.randomUUID()), // Không loại trừ ai
+                specialty,
+                PageRequest.of(0, 100) // Lấy tối đa 100 bác sĩ
+            );
             
-            List<Map<String, Object>> doctors = new ArrayList<>();
+            List<Map<String, Object>> doctorList = new ArrayList<>();
             
-            for (Object[] row : doctorRows) {
-                UUID doctorId = (UUID) row[0];
-                String doctorName = (String) row[1];
-                
+            for (User doctor : doctors) {
                 // Lấy lịch làm việc mới từ bảng doctor_work_schedule
-                List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctorId);
+                List<DoctorWorkSchedule> schedules = doctorWorkScheduleRepository.findByDoctorId(doctor.getId());
                 
                 if (!schedules.isEmpty()) {
-                    Map<String, Object> doctor = new HashMap<>();
-                    doctor.put("id", doctorId);
-                    doctor.put("name", doctorName);
-                    doctor.put("specialty", specialty);
+                    Map<String, Object> doctorInfo = new HashMap<>();
+                    doctorInfo.put("id", doctor.getId());
+                    doctorInfo.put("name", doctor.getFullName());
+                    doctorInfo.put("specialty", specialty);
                     
                     // Chuyển đổi lịch làm việc thành format mới
                     List<Map<String, Object>> workSchedule = schedules.stream()
@@ -452,12 +457,11 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                         })
                         .collect(Collectors.toList());
                     
-                    doctor.put("workSchedule", workSchedule);
-                    doctors.add(doctor);
+                    doctorInfo.put("workSchedule", workSchedule);
+                    doctorList.add(doctorInfo);
                 }
             }
-            
-            return ResponseEntity.ok(doctors);
+            return ResponseEntity.ok(doctorList);
         } catch (Exception e) {
             System.err.println("❌ Lỗi khi lấy danh sách bác sĩ: " + e.getMessage());
             return ResponseEntity.status(500).body("Lỗi khi lấy danh sách bác sĩ");

@@ -10,6 +10,4 @@ import java.util.UUID;
 public class UserDoctorResponse {
     private UUID id;
     private String fullName;
-    @Column(name = "work_schedule") // ✅ CHUẨN
-    private String workSchedule;
 }

@@ -82,6 +82,12 @@ public class TreatmentWorkflowServiceImpl implements TreatmentWorkflowService {
     @Override
     public TreatmentPlanResponse modifyTreatmentPlan(UUID treatmentPlanId, TreatmentPlanRequest modifications, String doctorId) {
         log.info("Modifying treatment plan: {} by doctor: {}", treatmentPlanId, doctorId);
+        // Kiểm tra quyền bác sĩ điều trị
+        TreatmentPlan plan = treatmentPlanRepository.findById(treatmentPlanId)
+            .orElseThrow(() -> new ResourceNotFoundException("Treatment plan not found: " + treatmentPlanId));
+        if (plan.getDoctorId() == null || !plan.getDoctorId().equals(UUID.fromString(doctorId))) {
+            throw new SecurityException("Chỉ bác sĩ điều trị mới được phép sửa phác đồ này!");
+        }
         TreatmentPlanResponse updatedPlan = updateTreatmentPlan(treatmentPlanId, modifications);
         log.info("Treatment plan modified successfully: {}", treatmentPlanId);
         return updatedPlan;

@@ -147,6 +147,15 @@ public class TreatmentWorkflowController {
         return ResponseEntity.ok(phases);
     }
 
+    @GetMapping("/treatment-plan/{planId}")
+    @Operation(summary = "Lấy chi tiết phác đồ điều trị theo ID")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<TreatmentPlanResponse> getTreatmentPlanById(@PathVariable UUID planId, HttpServletRequest request) {
+        // Có thể kiểm tra quyền ở đây nếu cần (hiện tại đã kiểm tra trong service)
+        TreatmentPlanResponse response = treatmentWorkflowService.getTreatmentPlanById(planId);
+        return ResponseEntity.ok(response);
+    }
+
     // ========== PHASE MANAGEMENT ENDPOINTS ==========
 
     @PutMapping("/treatment-plan/{treatmentPlanId}/phase/{phaseId}/status")

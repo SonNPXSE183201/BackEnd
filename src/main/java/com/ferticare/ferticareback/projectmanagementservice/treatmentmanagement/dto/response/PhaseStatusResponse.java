@@ -19,5 +19,4 @@ public class PhaseStatusResponse {
     private String notes;
     private String description;
     private Integer expectedDuration;
-    private String clinicalResultId;
 } 

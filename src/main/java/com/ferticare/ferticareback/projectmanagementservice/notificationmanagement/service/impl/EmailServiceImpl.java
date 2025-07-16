@@ -36,15 +36,33 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom(from);
             helper.setTo(user.getEmail());
-            helper.setSubject("Xác thực Email");
+            helper.setSubject("Xác thực Email - Fertix");
 
-            String htmlContent = "<h2>Xin chào " + user.getFullName() + ",</h2>"
-                    + "<p>Vui lòng nhấn vào liên kết sau để xác thực địa chỉ email của bạn:</p>"
-                    + "<p><a href=\"" + link + "\">Xác thực ngay</a></p>"
-                    + "<br/><p>Trân trọng,<br/>Đội ngũ FertiCare</p>";
+            String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
+                    + "<div style='background: linear-gradient(90deg, #ff6b9d 0%, #ff758c 100%); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0;'>"
+                    + "<h1 style='margin: 0;'>Fertix</h1>"
+                    + "<p style='margin: 5px 0 0 0;'>Hệ thống chăm sóc sức khỏe sinh sản</p>"
+                    + "</div>"
+                    + "<div style='padding: 30px; background-color: #fff6fa;'>"
+                    + "<h2 style='color: #ff6b9d;'>Xin chào " + user.getFullName() + ",</h2>"
+                    + "<p style='color: #666; font-size: 16px;'>Vui lòng nhấn vào liên kết sau để xác thực địa chỉ email của bạn:</p>"
+                    + "<div style='background-color: #ffe3ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff6b9d;'>"
+                    + "<div style='text-align: center;'>"
+                    + "<a href=\"" + link + "\" style='background-color: #ff6b9d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;'>Xác thực ngay</a>"
+                    + "</div>"
+                    + "</div>"
+                    + "<div style='text-align: center; margin-top: 30px;'>"
+                    + "<p style='color: #666;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
+                    + "<p style='color: #333; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
+                    + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
+                    + "</div>"
+                    + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
+                    + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                    + "</div>"
+                    + "</div>"
+                    + "</div>";
 
-            helper.setText(htmlContent, true); // ✅ true để kích hoạt HTML
-
+            helper.setText(htmlContent, true);
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
             System.err.println("❌ Lỗi khi gửi email xác thực: " + e.getMessage());
@@ -62,16 +80,36 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom(from);
             helper.setTo(user.getEmail());
-            helper.setSubject("Đặt lại mật khẩu");
+            helper.setSubject("Đặt lại mật khẩu - Fertix");
 
-            String htmlContent = "<h2>Xin chào " + user.getFullName() + ",</h2>"
-                    + "<p>Bạn vừa yêu cầu đặt lại mật khẩu. Vui lòng nhấn vào liên kết sau để đặt lại mật khẩu mới:</p>"
-                    + "<p><a href=\"" + link + "\">Đặt lại mật khẩu</a></p>"
-                    + "<br/><p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>"
-                    + "<br/><p>Trân trọng,<br/>Đội ngũ FertiCare</p>";
+            String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
+                    + "<div style='background: linear-gradient(90deg, #ff6b9d 0%, #ff758c 100%); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0;'>"
+                    + "<h1 style='margin: 0;'>Fertix</h1>"
+                    + "<p style='margin: 5px 0 0 0;'>Hệ thống chăm sóc sức khỏe sinh sản</p>"
+                    + "</div>"
+                    + "<div style='padding: 30px; background-color: #fff6fa;'>"
+                    + "<h2 style='color: #ff6b9d;'>Xin chào " + user.getFullName() + ",</h2>"
+                    + "<p style='color: #666; font-size: 16px;'>Bạn vừa yêu cầu đặt lại mật khẩu. Vui lòng nhấn vào liên kết sau để đặt lại mật khẩu mới:</p>"
+                    + "<div style='background-color: #ffe3ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff6b9d;'>"
+                    + "<div style='text-align: center;'>"
+                    + "<a href=\"" + link + "\" style='background-color: #ff6b9d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;'>Đặt lại mật khẩu</a>"
+                    + "</div>"
+                    + "</div>"
+                    + "<div style='background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;'>"
+                    + "<p style='margin: 0; color: #856404;'>⚠️ Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>"
+                    + "</div>"
+                    + "<div style='text-align: center; margin-top: 30px;'>"
+                    + "<p style='color: #666;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
+                    + "<p style='color: #333; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
+                    + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
+                    + "</div>"
+                    + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
+                    + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                    + "</div>"
+                    + "</div>"
+                    + "</div>";
 
             helper.setText(htmlContent, true);
-
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
             System.err.println("❌ Lỗi khi gửi email đặt lại mật khẩu: " + e.getMessage());
@@ -87,18 +125,18 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom(from);
             helper.setTo(customer.getEmail());
-            helper.setSubject("Xác nhận lịch hẹn - FertiCare");
+            helper.setSubject("Xác nhận lịch hẹn - Fertix");
 
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
-                    + "<div style='background-color: #4CAF50; color: white; padding: 20px; text-align: center;'>"
-                    + "<h1 style='margin: 0;'>FertiCare</h1>"
+                    + "<div style='background: linear-gradient(90deg, #ff6b9d 0%, #ff758c 100%); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0;'>"
+                    + "<h1 style='margin: 0;'>Fertix</h1>"
                     + "<p style='margin: 5px 0 0 0;'>Hệ thống chăm sóc sức khỏe sinh sản</p>"
                     + "</div>"
-                    + "<div style='padding: 30px; background-color: #f9f9f9;'>"
-                    + "<h2 style='color: #333;'>Xin chào " + customer.getFullName() + ",</h2>"
+                    + "<div style='padding: 30px; background-color: #fff6fa;'>"
+                    + "<h2 style='color: #ff6b9d;'>Xin chào " + customer.getFullName() + ",</h2>"
                     + "<p style='color: #666; font-size: 16px;'>Lịch hẹn của bạn đã được xác nhận thành công!</p>"
-                    + "<div style='background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4CAF50;'>"
-                    + "<h3 style='color: #333; margin-top: 0;'>📅 Thông tin lịch hẹn:</h3>"
+                    + "<div style='background-color: #ffe3ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff6b9d;'>"
+                    + "<h3 style='color: #ff6b9d; margin-top: 0;'>📅 Thông tin lịch hẹn:</h3>"
                     + "<table style='width: 100%; border-collapse: collapse;'>"
                     + "<tr><td style='padding: 8px 0; font-weight: bold; color: #555;'>Dịch vụ:</td><td style='padding: 8px 0; color: #333;'>" + serviceName + "</td></tr>"
                     + "<tr><td style='padding: 8px 0; font-weight: bold; color: #555;'>Bác sĩ:</td><td style='padding: 8px 0; color: #333;'>" + doctor.getFullName() + "</td></tr>"
@@ -137,7 +175,7 @@ public class EmailServiceImpl implements EmailService {
                     + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
                     + "</div>"
                     + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
-                    + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ FertiCare</p>"
+                    + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
                     + "</div>"
                     + "</div>"
                     + "</div>";
@@ -182,7 +220,14 @@ public class EmailServiceImpl implements EmailService {
                 + "</ul>"
                 + "</div>"
                 + "<p style='color: #ff6b9d;'>Vui lòng đến đúng giờ để đảm bảo quá trình điều trị diễn ra thuận lợi.</p>"
-                + "<br/><p style='color: #ff758c;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                + "<div style='text-align: center; margin-top: 30px;'>"
+                + "<p style='color: #666;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
+                + "<p style='color: #333; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
+                + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
+                + "</div>"
+                + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
+                + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                + "</div>"
                 + "</div>"
                 + "</div>";
             helper.setText(htmlContent, true);
@@ -217,7 +262,14 @@ public class EmailServiceImpl implements EmailService {
                 + "<li><b>Bước điều trị:</b> " + schedule.getStepName() + "</li>"
                 + "</ul>"
                 + "</div>"
-                + "<br/><p style='color: #ff758c;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                + "<div style='text-align: center; margin-top: 30px;'>"
+                + "<p style='color: #666;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
+                + "<p style='color: #333; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
+                + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
+                + "</div>"
+                + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
+                + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                + "</div>"
                 + "</div>"
                 + "</div>";
             helper.setText(htmlContent, true);
@@ -229,15 +281,18 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendTreatmentCancelled(TreatmentSchedule schedule) {
-        Optional<User> patientOpt = userRepository.findById(schedule.getPatientId());
-        if (patientOpt.isEmpty()) return;
-        User patient = patientOpt.get();
+        // Để trống hoặc giữ nguyên logic cũ nếu cần cho schedule, không ảnh hưởng logic mới
+    }
+
+    @Override
+    public void sendTreatmentCancelled(User patient, User doctor, TreatmentPlan plan, String reason) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setFrom(from);
             helper.setTo(patient.getEmail());
-            helper.setSubject("[Hủy kế hoạch] Kế hoạch điều trị của bạn đã bị hủy tại Fertix");
+            helper.setSubject("[Hủy kế hoạch điều trị] Fertix");
+            
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
                 + "<div style='background: linear-gradient(90deg, #ff6b9d 0%, #ff758c 100%); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0;'>"
                 + "<h1 style='margin: 0;'>Fertix</h1>"
@@ -245,19 +300,38 @@ public class EmailServiceImpl implements EmailService {
                 + "</div>"
                 + "<div style='padding: 30px; background-color: #fff6fa;'>"
                 + "<h2 style='color: #ff6b9d;'>Xin chào " + patient.getFullName() + ",</h2>"
-                + "<p style='color: #ff6b9d; font-size: 16px;'><b>Kế hoạch điều trị của bạn đã bị hủy do không đến đúng giờ theo quy định.</b></p>"
-                + "<div style='background-color: #ffebf2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff6b9d;'>"
-                + "<ul style='list-style: none; padding: 0; color: #ff6b9d;'>"
-                + "<li><b>Bước điều trị:</b> " + schedule.getStepName() + "</li>"
-                + "<li><b>Thời gian dự kiến:</b> " + schedule.getScheduledDate() + "</li>"
+                + "<p style='color: #ff6b9d; font-size: 16px;'>Kế hoạch điều trị của bạn đã được hủy.</p>"
+                + "<div style='background-color: #ffe3ed; border: 1.5px solid #ff6b9d; border-radius: 8px; padding: 20px; margin: 20px 0;'>"
+                + "<h3 style='color: #ff6b9d; margin-top: 0; font-weight: bold;'>❌ Thông tin hủy kế hoạch:</h3>"
+                + "<table style='width: 100%; color: #ff6b9d;'>"
+                + "<tr><td style='font-weight: bold;'>Kế hoạch:</td><td>" + plan.getPlanName() + "</td></tr>"
+                + "<tr><td style='font-weight: bold;'>Loại điều trị:</td><td>" + plan.getTreatmentType() + "</td></tr>"
+                + (doctor != null ? "<tr><td style='font-weight: bold;'>Bác sĩ:</td><td>" + doctor.getFullName() + "</td></tr>" : "")
+                + "<tr><td style='font-weight: bold;'>Ngày bắt đầu:</td><td>" + plan.getStartDate() + "</td></tr>"
+                + "<tr><td style='font-weight: bold;'>Lý do hủy:</td><td>" + (reason != null ? reason : "Không có thông tin") + "</td></tr>"
+                + "</table>"
+                + "</div>"
+                + "<div style='background-color: #ffe3ed; border: 1.5px solid #ff6b9d; border-radius: 8px; padding: 20px; margin: 20px 0;'>"
+                + "<h3 style='color: #ff6b9d; margin-top: 0; font-weight: bold;'>📞 Liên hệ hỗ trợ:</h3>"
+                + "<ul style='color: #ff6b9d; margin: 0; padding-left: 20px;'>"
+                + "<li>Nếu có thắc mắc về việc hủy kế hoạch, vui lòng liên hệ ngay</li>"
+                + "<li>Chúng tôi sẵn sàng hỗ trợ bạn tạo kế hoạch điều trị mới</li>"
+                + "<li>Đội ngũ y tế sẽ tư vấn và hướng dẫn các bước tiếp theo</li>"
                 + "</ul>"
                 + "</div>"
-                + "<p style='color: #ff6b9d;'>Nếu có thắc mắc, vui lòng liên hệ phòng khám để được hỗ trợ.</p>"
-                + "<br/><p style='color: #ff758c;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                + "<div style='text-align: center; margin-top: 30px;'>"
+                + "<p style='color: #666;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
+                + "<p style='color: #333; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
+                + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
+                + "</div>"
+                + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
+                + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                + "</div>"
                 + "</div>"
                 + "</div>";
             helper.setText(htmlContent, true);
             mailSender.send(mimeMessage);
+            System.out.println("✅ Đã gửi email hủy kế hoạch điều trị cho: " + patient.getEmail());
         } catch (MessagingException e) {
             System.err.println("❌ Lỗi khi gửi email hủy kế hoạch điều trị: " + e.getMessage());
         }
@@ -354,12 +428,12 @@ public class EmailServiceImpl implements EmailService {
                 + "</ul>"
                 + "</div>"
                 + "<div style='text-align: center; margin-top: 30px;'>"
-                + "<p style='color: #ff758c;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
-                + "<p style='color: #ff6b9d; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
-                + "<p style='color: #ff6b9d; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
+                + "<p style='color: #666;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
+                + "<p style='color: #333; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
+                + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
                 + "</div>"
-                + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ffe3ed;'>"
-                + "<p style='color: #ff758c; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
+                + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
+                + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
                 + "</div>"
                 + "</div>";
             helper.setText(htmlContent, true);
@@ -377,18 +451,18 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setFrom(from);
             helper.setTo(patient.getEmail());
-            helper.setSubject("[Lịch hẹn điều trị] FertiCare - " + schedule.getStepName());
+            helper.setSubject("[Lịch hẹn điều trị] Fertix - " + schedule.getStepName());
             
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
-                    + "<div style='background-color: #FF9800; color: white; padding: 20px; text-align: center;'>"
-                    + "<h1 style='margin: 0;'>FertiCare</h1>"
+                    + "<div style='background: linear-gradient(90deg, #ff6b9d 0%, #ff758c 100%); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0;'>"
+                    + "<h1 style='margin: 0;'>Fertix</h1>"
                     + "<p style='margin: 5px 0 0 0;'>Hệ thống chăm sóc sức khỏe sinh sản</p>"
                     + "</div>"
-                    + "<div style='padding: 30px; background-color: #f9f9f9;'>"
-                    + "<h2 style='color: #333;'>Xin chào " + patient.getFullName() + ",</h2>"
+                    + "<div style='padding: 30px; background-color: #fff6fa;'>"
+                    + "<h2 style='color: #ff6b9d;'>Xin chào " + patient.getFullName() + ",</h2>"
                     + "<p style='color: #666; font-size: 16px;'>Lịch hẹn điều trị của bạn đã được sắp xếp!</p>"
-                    + "<div style='background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #FF9800;'>"
-                    + "<h3 style='color: #333; margin-top: 0;'>📅 Thông tin lịch hẹn:</h3>"
+                    + "<div style='background-color: #ffe3ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff6b9d;'>"
+                    + "<h3 style='color: #ff6b9d; margin-top: 0;'>📅 Thông tin lịch hẹn:</h3>"
                     + "<table style='width: 100%; border-collapse: collapse;'>"
                     + "<tr><td style='padding: 8px 0; font-weight: bold; color: #555;'>Bước điều trị:</td><td style='padding: 8px 0; color: #333;'>" + schedule.getStepName() + "</td></tr>"
                     + "<tr><td style='padding: 8px 0; font-weight: bold; color: #555;'>Thứ tự:</td><td style='padding: 8px 0; color: #333;'>Bước " + schedule.getStepNumber() + "</td></tr>"
@@ -414,7 +488,7 @@ public class EmailServiceImpl implements EmailService {
                     + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
                     + "</div>"
                     + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"
-                    + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ FertiCare</p>"
+                    + "<p style='color: #999; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Fertix</p>"
                     + "</div>"
                     + "</div>"
                     + "</div>";

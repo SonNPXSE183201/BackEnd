@@ -34,8 +34,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
         // Xóa token cũ nếu có
         passwordResetTokenRepository.findAll().stream()
-            .filter(t -> t.getUser().getId().equals(user.getId()))
-            .forEach(passwordResetTokenRepository::delete);
+                .filter(t -> t.getUser().getId().equals(user.getId()))
+                .forEach(passwordResetTokenRepository::delete);
         // Tạo token mới
         String token = UUID.randomUUID().toString();
         PasswordResetToken resetToken = PasswordResetToken.builder()
@@ -64,5 +64,10 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         if (!Pattern.matches(PASSWORD_PATTERN, newPassword)) {
             throw new IllegalArgumentException("Mật khẩu phải tối thiểu 8 ký tự, có chữ hoa, chữ thường và số!");
         }
+        
+        // *** BỔ SUNG ĐOẠN NÀY ***
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        passwordResetTokenRepository.delete(resetToken);
     }
 }

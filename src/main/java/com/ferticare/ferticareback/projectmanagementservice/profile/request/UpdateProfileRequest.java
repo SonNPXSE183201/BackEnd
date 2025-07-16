@@ -42,9 +42,6 @@ public class UpdateProfileRequest {
     @Max(value = 50, message = "Experience years must not exceed 50")
     private Integer experienceYears;
     
-    @Size(max = 500, message = "Work schedule must not exceed 500 characters")
-    private String workSchedule;
-    
     @Size(max = 1000, message = "Notes must not exceed 1000 characters")
     private String notes;
     

@@ -14,30 +14,18 @@ import java.util.stream.Collectors;
 import com.ferticare.ferticareback.projectmanagementservice.configuration.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.http.HttpStatus;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-import com.ferticare.ferticareback.projectmanagementservice.configuration.exception.ResourceNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex, HttpServletRequest request) {
         logger.error("RuntimeException at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
-        logger.error("RuntimeException at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         ErrorResponse error = new ErrorResponse(
                 403,
                 "Forbidden",
                 ex.getMessage(),
-                request.getRequestURI());
                 request.getRequestURI());
         return ResponseEntity.status(403).body(error);
     }

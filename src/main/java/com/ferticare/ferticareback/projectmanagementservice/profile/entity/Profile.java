@@ -1,12 +1,13 @@
 package com.ferticare.ferticareback.projectmanagementservice.profile.entity;
 
+import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.entity.Department;
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "profile")
+@Table(name = "Profile")
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,34 +15,55 @@ import java.util.UUID;
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "profile_id")
     private UUID profileId;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // ==================== DOCTOR FIELDS (based on actual database schema) ====================
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String specialty;
+    
+    @Column(columnDefinition = "NVARCHAR(255)")
+    private String specialization;
+    
+    @Column(columnDefinition = "NVARCHAR(500)")
     private String qualification;
-    @Column(name = "experience_years")
+    
     private Integer experienceYears;
+    
+    @Column(columnDefinition = "NVARCHAR(MAX)")
+    private String workSchedule;
+    
     private Double rating;
-    @Column(name = "case_count")
     private Integer caseCount;
+    
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String notes;
-    @Column(nullable = false)
+    
+    @Column(columnDefinition = "NVARCHAR(50)")
     private String status;
 
-    // ==================== CUSTOMER FIELDS (based on actual database schema) ====================
-    @Column(name = "marital_status")
+    @Column(columnDefinition = "NVARCHAR(100)")
     private String maritalStatus;
-    @Column(name = "health_background")
+    
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String healthBackground;
 
-    // ==================== MANAGER/ADMIN FIELDS (based on actual database schema) ====================
-    @Column(name = "assigned_department")
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String assignedDepartment;
-    @Column(name = "extra_permissions")
+    
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String extraPermissions;
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "department_id")
+    private Department department;
+    
+    // Trường department cũ (String) được giữ lại để tương thích ngược
+    @Column(name = "department_name", columnDefinition = "NVARCHAR(255)")
+    private String departmentName; 
+    
+    @Column(columnDefinition = "NVARCHAR(100)")
+    private String contractType; // Loại hợp đồng (full-time, part-time, contract)
 }

@@ -5,9 +5,6 @@ import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entit
 import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.entity.TreatmentSchedule;
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.repository.UserRepository;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.entity.TreatmentPlan;
-import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.entity.TreatmentSchedule;
-import com.ferticare.ferticareback.projectmanagementservice.usermanagement.repository.UserRepository;
-import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.entity.TreatmentPlan;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
 import java.util.Optional;
 
 @Service
@@ -26,9 +22,6 @@ public class EmailServiceImpl implements EmailService {
 
     @Value("${spring.mail.username}")
     private String from;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -179,7 +172,6 @@ public class EmailServiceImpl implements EmailService {
                     + "<div style='text-align: center; margin-top: 30px;'>"
                     + "<p style='color: #666;'>Nếu có thắc mắc, vui lòng liên hệ:</p>"
                     + "<p style='color: #333; font-weight: bold;'>📞 Hotline: 1900-xxxx</p>"
-                    + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
                     + "<p style='color: #333; font-weight: bold;'>📧 Email: ferticaretreatment@gmail.com</p>"
                     + "</div>"
                     + "<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;'>"

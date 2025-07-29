@@ -65,7 +65,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new IllegalArgumentException("Mật khẩu phải tối thiểu 8 ký tự, có chữ hoa, chữ thường và số!");
         }
         
-        // *** BỔ SUNG ĐOẠN NÀY ***
+        // Lưu mật khẩu lại sau khi reset
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         passwordResetTokenRepository.delete(resetToken);

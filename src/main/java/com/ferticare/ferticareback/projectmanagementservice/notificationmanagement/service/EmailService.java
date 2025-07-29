@@ -3,8 +3,6 @@ package com.ferticare.ferticareback.projectmanagementservice.notificationmanagem
 import com.ferticare.ferticareback.projectmanagementservice.usermanagement.entity.User;
 import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.entity.TreatmentSchedule;
 import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.entity.TreatmentPlan;
-import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.entity.TreatmentSchedule;
-import com.ferticare.ferticareback.projectmanagementservice.treatmentmanagement.entity.TreatmentPlan;
 
 public interface EmailService {
     void sendVerificationEmail(User user, String token);

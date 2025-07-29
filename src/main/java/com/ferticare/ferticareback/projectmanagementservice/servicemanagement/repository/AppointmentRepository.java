@@ -25,11 +25,27 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
     // ✅ Trả về danh sách bác sĩ bận ở thời điểm đó
     @Query("SELECT a.doctorId FROM Appointment a WHERE a.appointmentTime = :time")
     List<UUID> findDoctorIdsBusyAt(@Param("time") LocalDateTime time);
-
+    
     // ✅ Lấy danh sách thời gian đã có lịch hẹn của bác sĩ trong một khoảng thời gian
     @Query("SELECT a.appointmentTime FROM Appointment a WHERE a.doctorId = :doctorId AND a.appointmentTime BETWEEN :startTime AND :endTime")
     List<LocalDateTime> findAppointmentTimesByDoctorIdAndDateRange(
             @Param("doctorId") UUID doctorId,
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime);
+
+    // 🆕 Đếm tổng số lịch hẹn của customer
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.customerId = :customerId")
+    long countByCustomerId(@Param("customerId") UUID customerId);
+
+    // 🆕 Đếm số lịch hẹn đang pending của customer
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.customerId = :customerId AND a.checkInStatus = 'Pending'")
+    long countPendingByCustomerId(@Param("customerId") UUID customerId);
+
+    // 🆕 Đếm số lịch hẹn trong tương lai của customer
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.customerId = :customerId AND a.appointmentTime > :currentTime")
+    long countFutureByCustomerId(@Param("customerId") UUID customerId, @Param("currentTime") LocalDateTime currentTime);
+
+    // 🆕 Lấy danh sách lịch hẹn trong tương lai của customer
+    @Query("SELECT a FROM Appointment a WHERE a.customerId = :customerId AND a.appointmentTime > :currentTime ORDER BY a.appointmentTime ASC")
+    List<Appointment> findFutureByCustomerId(@Param("customerId") UUID customerId, @Param("currentTime") LocalDateTime currentTime);
 }

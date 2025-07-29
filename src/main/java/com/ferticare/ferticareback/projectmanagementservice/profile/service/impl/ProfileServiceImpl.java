@@ -95,6 +95,24 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    public String updateAvatar(UUID userId, MultipartFile avatarFile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Delete old avatar if exists
+        if (StringUtils.hasText(user.getAvatarUrl())) {
+            fileService.deleteFile(user.getAvatarUrl());
+        }
+
+        // Upload new avatar
+        String avatarUrl = fileService.uploadFile(avatarFile, "avatars");
+        user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+
+        return avatarUrl;
+    }
+
+    @Override
     public DoctorProfileResponse updateDoctorProfile(UUID userId, UpdateDoctorProfileRequest request) {
         validateUserRole(userId, "DOCTOR");
         
@@ -188,24 +206,6 @@ public class ProfileServiceImpl implements ProfileService {
         profileRepository.save(profile);
 
         return ProfileMapper.toManagerAdminResponse(user, profile);
-    }
-
-    @Override
-    public String updateAvatar(UUID userId, MultipartFile avatarFile) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Delete old avatar if exists
-        if (StringUtils.hasText(user.getAvatarUrl())) {
-            fileService.deleteFile(user.getAvatarUrl());
-        }
-
-        // Upload new avatar
-        String avatarUrl = fileService.uploadFile(avatarFile, "avatars");
-        user.setAvatarUrl(avatarUrl);
-        userRepository.save(user);
-
-        return avatarUrl;
     }
 
     // ==================== HELPER METHODS ====================

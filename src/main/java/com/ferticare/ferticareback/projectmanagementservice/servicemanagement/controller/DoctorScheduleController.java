@@ -5,8 +5,6 @@ import com.ferticare.ferticareback.projectmanagementservice.configuration.securi
 import com.ferticare.ferticareback.projectmanagementservice.servicemanagement.service.ServiceRequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +14,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/doctor/schedule")
-@RequestMapping("/api/doctor/schedule")
 @RequiredArgsConstructor
 public class DoctorScheduleController {
 
@@ -24,7 +21,6 @@ public class DoctorScheduleController {
     private final JwtUtil jwtUtil;
 
     /**
-     * Lấy lịch làm việc của bác sĩ hiện tại
      * Lấy lịch làm việc của bác sĩ hiện tại
      */
     @DoctorOnly
@@ -34,22 +30,18 @@ public class DoctorScheduleController {
             // Lấy thông tin user từ JWT
             String jwt = jwtUtil.extractJwtFromRequest(request);
             String doctorId = jwtUtil.extractUserId(jwt);
-
+            
             return serviceRequestService.getDoctorSchedule(UUID.fromString(doctorId));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
             return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
         }
     }
 
     /**
      * Lấy lịch hẹn của bác sĩ theo ngày
-     * Lấy lịch hẹn của bác sĩ theo ngày
      */
     @DoctorOnly
     @GetMapping("/my-appointments")
-    @Operation(summary = "Lấy lịch hẹn của bác sĩ theo ngày", description = "Bác sĩ xem lịch hẹn của mình trong ngày cụ thể")
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Lấy lịch hẹn của bác sĩ theo ngày", description = "Bác sĩ xem lịch hẹn của mình trong ngày cụ thể")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<?> getMyAppointments(
@@ -59,9 +51,9 @@ public class DoctorScheduleController {
             // Lấy thông tin user từ JWT
             String jwt = jwtUtil.extractJwtFromRequest(request);
             String doctorId = jwtUtil.extractUserId(jwt);
-
-            java.time.LocalDate localDate = date != null ?
-                    java.time.LocalDate.parse(date) : java.time.LocalDate.now();
+            
+            java.time.LocalDate localDate = date != null ? 
+                java.time.LocalDate.parse(date) : java.time.LocalDate.now();
             return serviceRequestService.getDoctorAppointments(UUID.fromString(doctorId), localDate);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());

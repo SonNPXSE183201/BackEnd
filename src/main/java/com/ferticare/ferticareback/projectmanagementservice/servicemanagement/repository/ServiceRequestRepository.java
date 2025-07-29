@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, UUID> {
-
+    
     /**
      * Kiểm tra xem đã có request trùng lặp chưa (cùng customer, service, thời gian)
      */

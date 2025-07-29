@@ -54,4 +54,16 @@ public class ServiceRequestController {
             return ResponseEntity.status(400).body("Lỗi khi lấy danh sách ngày: " + e.getMessage());
         }
     }
+
+    /**
+     * 🆕 API cho customer xem thông tin giới hạn lịch hẹn của mình
+     */
+    @GetMapping("/customer/{customerId}/appointment-limit")
+    public ResponseEntity<?> getCustomerAppointmentLimit(@PathVariable UUID customerId) {
+        try {
+            return serviceRequestService.getCustomerAppointmentLimit(customerId);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Lỗi khi lấy thông tin giới hạn lịch hẹn: " + e.getMessage());
+        }
+    }
 }
